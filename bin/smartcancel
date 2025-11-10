@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Thin shim that executes cmd/smartcancel/smartcancel.sh
+set -Eeuo pipefail
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+export SSC_HOME="$DIR"
+exec "$DIR/cmd/smartcancel/smartcancel.sh" "$@"
