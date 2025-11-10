@@ -51,21 +51,6 @@ DRY=false
 YES=false
 REASON=""
 
---state)
-  val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; shift 2
-  case "$val" in
-    dependency|dep|deps)
-      STATE_FILTER="PENDING"
-      REASON_FILTER="Dependency"
-      ;;
-    pending|running|suspended|completed|cancelled|failed|timeout|node_fail|preempted|boot_fail|deadline|out_of_memory|completing|configuring|resizing|resv_del_hold|requeued|requeue_fed|requeue_hold|revoked|signaling|special_exit|stage_out|stopped)
-      STATE_FILTER="$(tr '[:lower:]' '[:upper:]' <<<"$val")"
-      ;;
-    *)
-      die 2 "Unknown state: $val"
-      ;;
-  esac
-  ;;
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -74,8 +59,22 @@ while [[ $# -gt 0 ]]; do
     --name) NAME_EQ="$2"; shift 2 ;;
     --contains) NAME_CONTAINS="$2"; shift 2 ;;
     --older-than) OLDER_THAN="$2"; shift 2 ;;
-    --state) STATE_FILTER="$2"; shift 2 ;;
     --latest) LATEST=true; shift ;;
+    --state)
+      val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; shift 2
+      case "$val" in
+        dependency|dep|deps)
+          STATE_FILTER="PENDING"
+          REASON_FILTER="Dependency"
+          ;;
+        pending|running|suspended|completed|cancelled|failed|timeout|node_fail|preempted|boot_fail|deadline|out_of_memory|completing|configuring|resizing|resv_del_hold|requeued|requeue_fed|requeue_hold|revoked|signaling|special_exit|stage_out|stopped)
+          STATE_FILTER="$(tr '[:lower:]' '[:upper:]' <<<"$val")"
+          ;;
+        *)
+          die 2 "Unknown state: $val"
+          ;;
+      esac
+      ;;
     # --with-dependents) WITH_DEPS=true; shift ;;
     --reason) REASON="$2"; shift 2 ;;
     --dry-run) DRY=true; shift ;;
