@@ -91,23 +91,37 @@ slurm::job_names_from_dir() {
 slurm::squeue_by_job_names() {
   require_cmd squeue
   local user="${1:-$(current_user)}"; shift || true
-  local -a names=()
+
+  # Collect job names either from args or stdin into a temp file
+  local tmpnames
+  tmpnames="$(mktemp)" || { echo "mktemp failed" >&2; return 1; }
+
   if [[ $# -gt 0 ]]; then
-    names=("$@")
+    printf '%s\n' "$@" >"$tmpnames"
   else
     # read from stdin
-    while IFS= read -r n; do [[ -n "$n" ]] && names+=("$n"); done
+    # shellcheck disable=SC2162
+    while IFS= read -r n; do
+      [[ -n "$n" ]] && printf '%s\n' "$n" >>"$tmpnames"
+    done
   fi
-  [[ ${#names[@]} -gt 0 ]] || return 0
 
-  # Build awk set for fast membership test
-  local awkset
-  awkset="$(printf 'set["%s"]=1;' "${names[@]}")"
+  # If no names provided, nothing to filter
+  if [[ ! -s "$tmpnames" ]]; then
+    rm -f "$tmpnames"
+    return 0
+  fi
 
+  # Two-file trick:
+  #  - First input (tmpnames): build set[name]
+  #  - Second input (squeue output): print rows where JobName ($2) is in set
   squeue -h -o "%i|%j|%T|%Z|%M|%S" -u "$user" \
-  | awk -F'|' -v CODE="$awkset" 'BEGIN{eval(CODE)} set[$2]==1 {print $0}'
-}
+  | awk -F'|' 'NR==FNR { set[$1]; next } $2 in set' "$tmpnames" -
 
+  local rc=$?
+  rm -f "$tmpnames"
+  return $rc
+}
 # Convenience: return JobIDs only for the given names
 slurm::job_ids_by_job_names() {
   slurm::squeue_by_job_names "$(current_user)" "$@" | cut -d'|' -f1 | sed '/^$/d' | sort -u
