@@ -150,10 +150,17 @@ if [[ -z "$TARGET_IDS" ]]; then
   exit 0
 fi
 
-# Pretty print a preview table
+# Bold header (using ANSI codes)
 echo -e "\e[1mJobs to cancel\e[0m"
-awk -F'|' 'BEGIN{printf("%-12s %-20s %-10s %-s\n","JobID","JobName","State","WorkDir")}
-           {printf("%-12s %-20s %-10s %-s\n",$1,$2,$3,$4)}' <<<"$CANDIDATES"
+
+# Pretty table with Reason (field 7)
+awk -F'|' '
+BEGIN {
+  printf("%-12s %-20s %-10s %-25s %-s\n", "JobID", "JobName", "State", "Reason", "WorkDir")
+}
+{
+  printf("%-12s %-20s %-10s %-25s %-s\n", $1, $2, $3, $7, $4)
+}' <<<"$CANDIDATES"
 
 if $DRY; then
   echo
