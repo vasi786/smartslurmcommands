@@ -4,7 +4,7 @@
 slurm::squeue_lines() {
   require_cmd squeue
   local state="${1:-}" user="${2:-$(current_user)}"
-  local args=(-h -o "%i|%j|%T|%Z|%M|%S" -u "$user")
+  local args=(-h -o "%i|%j|%T|%Z|%M|%S|%R" -u "$user")
   [[ -n "$state" ]] && args+=(-t "$state")
   squeue "${args[@]}"
 }
