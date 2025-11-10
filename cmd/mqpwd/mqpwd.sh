@@ -9,7 +9,7 @@ IFS=$'\n\t'
 SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/slurm.sh"
-source "$SSC_HOME/lib/colors.sh"; color::setup auto
+# source "$SSC_HOME/lib/colors.sh"; color::setup auto
 
 # Accept 0 or 1 argument (directory)
 if [[ $# -gt 1 ]]; then
