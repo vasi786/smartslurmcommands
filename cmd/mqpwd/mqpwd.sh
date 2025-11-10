@@ -31,9 +31,12 @@ mapfile -t names < <(slurm::job_names_from_dir "$dir")
 lines="$(slurm::squeue_by_job_names "$(id -un)" "${names[@]}")"
 [[ -z "$lines" ]] && { echo "No matching jobs found in queue."; exit 0; }
 
-# Pretty table
-printf "%s%-10s %-8s %-35s %-10s %-19s %s%s\n" \
-  "$(c bold)" "JOBID" "STATE" "NAME" "ELAPSED" "START_TIME" "WORKDIR" "$(reset)"
-awk -F'|' '{printf "%-10s %-8s %-35s %-10s %-19s %s\n",$1,$3,$2,$5,$6,$4}' <<<"$lines"
+# Header with Reason
+printf "%-10s %-8s %-35s %-10s %-19s %-20s %s\n" \
+  "JOBID" "STATE" "NAME" "ELAPSED" "START_TIME" "REASON" "WORKDIR"
+
+# Rows (notice $7 for Reason)
+awk -F'|' '{printf "%-10s %-8s %-35s %-10s %-19s %-20s %s\n", $1,$3,$2,$5,$6,$7,$4}' <<<"$lines"
+
 
 
