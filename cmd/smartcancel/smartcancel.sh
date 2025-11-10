@@ -79,9 +79,13 @@ if $THIS_DIR || [[ -n "$DIR_FILTER" ]]; then
   mapfile -t _names < <(slurm::job_names_from_dir "$dir")
   [[ ${#_names[@]} -gt 0 ]] || die 0 "No #SBATCH --job-name found in *.sh under: $dir"
 
-  # Keep only lines whose JobName is in the extracted set
-  awkset="$(printf 'set["%s"]=1;' "${_names[@]}")"
-  CANDIDATES="$(awk -F'|' -v CODE="$awkset" 'BEGIN{eval(CODE)} set[$2]==1 {print $0}' <<<"$CANDIDATES")"
+  # Keep only lines whose JobName ($2) is in _names
+  # Use AWK "two-file trick": first input builds a set from names, second filters CANDIDATES
+  CANDIDATES="$(
+    awk -F'|' 'NR==FNR { set[$1]=1; next } set[$2] { print $0 }' \
+      <(printf '%s\n' "${_names[@]}") \
+      <(printf '%s\n' "$CANDIDATES")
+  )"
 fi
 
 # Name filters
