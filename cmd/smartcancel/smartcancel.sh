@@ -13,6 +13,7 @@ source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/util.sh"
 # source "$SSC_HOME/lib/args.sh"
 source "$SSC_HOME/lib/slurm.sh"
+source "$SSC_HOME/lib/ui.sh"
 
 usage() {
   cat <<'EOF'
@@ -87,21 +88,22 @@ done
 SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
 CANDIDATES="$SQUEUE_CACHE"
 
-if $THIS_DIR || [[ -n "$DIR_FILTER" ]]; then
+if $THIS_DIR; then
   dir="${DIR_FILTER:-$PWD}"
   [[ -d "$dir" ]] || die 2 "Directory not found: $dir"
 
-  # Extract job names from sbatch scripts in that dir
-  mapfile -t _names < <(slurm::job_names_from_dir "$dir")
-  [[ ${#_names[@]} -gt 0 ]] || die 0 "No #SBATCH --job-name found in *.sh under: $dir"
+  mapfile -t names < <(slurm::job_names_from_dir "$dir")
+  [[ ${#names[@]} -gt 0 ]] || die 0 "No #SBATCH --job-name found in *.sh under: $dir"
 
-  # Keep only lines whose JobName ($2) is in _names
-  # Use AWK "two-file trick": first input builds a set from names, second filters CANDIDATES
-  CANDIDATES="$(
-    awk -F'|' 'NR==FNR { set[$1]=1; next } set[$2] { print $0 }' \
-      <(printf '%s\n' "${_names[@]}") \
-      <(printf '%s\n' "$CANDIDATES")
-  )"
+  # Only prompt if user didn’t already narrow by --name/--contains and we have >1
+  if [[ -z "${NAME_EQ:-}" && -z "${NAME_CONTAINS:-}" && ${#names[@]} -gt 1 ]]; then
+    mapfile -t picked < <(ui::pick_jobnames "${names[@]}")
+  else
+    picked=("${names[@]}")
+  fi
+
+  CANDIDATES="$(slurm::squeue_by_job_names "$(current_user)" "${picked[@]}")"
+  [[ -z "$CANDIDATES" ]] && { echo "No matching jobs found for: ${picked[*]}"; exit 0; }
 fi
 
 # Name filters
