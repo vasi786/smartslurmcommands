@@ -131,7 +131,7 @@ if [[ -z "$TARGET_IDS" ]]; then
 fi
 
 # Pretty print a preview table
-echo -e "$(c bold)Jobs to cancel"
+echo -e "\e[1mJobs to cancel\e[0m"
 awk -F'|' 'BEGIN{printf("%-12s %-20s %-10s %-s\n","JobID","JobName","State","WorkDir")}
            {printf("%-12s %-20s %-10s %-s\n",$1,$2,$3,$4)}' <<<"$CANDIDATES"
 
