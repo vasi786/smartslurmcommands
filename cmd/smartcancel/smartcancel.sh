@@ -44,11 +44,28 @@ NAME_EQ=""
 NAME_CONTAINS=""
 OLDER_THAN=""
 STATE_FILTER=""
+REASON_FILTER=""
 LATEST=false
 # WITH_DEPS=false
 DRY=false
 YES=false
 REASON=""
+
+--state)
+  val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; shift 2
+  case "$val" in
+    dependency|dep|deps)
+      STATE_FILTER="PENDING"
+      REASON_FILTER="Dependency"
+      ;;
+    pending|running|suspended|completed|cancelled|failed|timeout|node_fail|preempted|boot_fail|deadline|out_of_memory|completing|configuring|resizing|resv_del_hold|requeued|requeue_fed|requeue_hold|revoked|signaling|special_exit|stage_out|stopped)
+      STATE_FILTER="$(tr '[:lower:]' '[:upper:]' <<<"$val")"
+      ;;
+    *)
+      die 2 "Unknown state: $val"
+      ;;
+  esac
+  ;;
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -111,6 +128,10 @@ fi
 # Latest only
 if $LATEST; then
   CANDIDATES="$(slurm::pick_latest_line <<<"$CANDIDATES")"
+fi
+
+if [[ -n "$REASON_FILTER" ]]; then
+  CANDIDATES="$(awk -F'|' -v r="$REASON_FILTER" '$7 ~ r' <<<"$CANDIDATES")"
 fi
 
 # Build ID list
