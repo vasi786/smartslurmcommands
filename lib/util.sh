@@ -28,4 +28,7 @@ time::older_than() {
 
   [[ "$es" -gt "$ts" ]]
 }
+# current_user helper
+current_user() { id -un 2>/dev/null || echo "${USER:-unknown}"; }
+
 
