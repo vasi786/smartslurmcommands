@@ -27,16 +27,20 @@ mapfile -t names < <(slurm::job_names_from_dir "$dir")
   exit 0
 }
 
-# Query squeue for these names (current user)
-lines="$(slurm::squeue_by_job_names "$(id -un)" "${names[@]}")"
-[[ -z "$lines" ]] && { echo "No matching jobs found in queue."; exit 0; }
+# Get matching JobIDs for these names
+ids="$(slurm::job_ids_by_job_names "$(current_user)" "${names[@]}")"
+[[ -z "$ids" ]] && { echo "No matching jobs found in queue."; exit 0; }
+
+# Build a comma-separated list for -j
+csv_ids="$(paste -sd, <<<"$ids")"
+squeue --me -j "$csv_ids" -o "%.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R"
 
 # Header with Reason
-printf "%-10s %-8s %-35s %-10s %-19s %-20s %s\n" \
-  "JOBID" "STATE" "NAME" "ELAPSED" "START_TIME" "REASON" "WORKDIR"
-
-# Rows (notice $7 for Reason)
-awk -F'|' '{printf "%-10s %-8s %-35s %-10s %-19s %-20s %s\n", $1,$3,$2,$5,$6,$7,$4}' <<<"$lines"
+# printf "%-10s %-8s %-35s %-10s %-19s %-20s %s\n" \
+#   "JOBID" "STATE" "NAME" "ELAPSED" "START_TIME" "REASON"
+#
+# # Rows (notice $7 for Reason)
+# awk -F'|' '{printf "%-10s %-8s %-35s %-10s %-19s %-20s %s\n", $1,$3,$2,$5,$6,$7,$4}' <<<"$lines"
 
 
 
