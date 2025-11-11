@@ -13,6 +13,7 @@ DEFAULT_PREFIX="${HOME}/.local"
 PREFIX="$DEFAULT_PREFIX"
 YES=false
 DRY=false
+PURGE=false
 
 usage() {
   cat <<EOF
@@ -30,6 +31,7 @@ while [[ $# -gt 0 ]]; do
     --prefix) PREFIX="$2"; shift 2 ;;
     --yes) YES=true; shift ;;
     --dry-run) DRY=true; shift ;;
+    --purge) PURGE=true; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage; exit 2 ;;
   esac
@@ -38,6 +40,9 @@ done
 BIN_DIR="${PREFIX}/bin"
 SHARE_DIR="${PREFIX}/share/smartslurmcommands"
 MAN_DIR="${PREFIX}/share/man/man1"
+: "${XDG_CONFIG_HOME:="$HOME/.config"}"
+USER_CONFIG_DIR="${USER_CONFIG_DIR:-"$XDG_CONFIG_HOME/smartslurmcommands"}"
+USER_CONFIG_FILE="${USER_CONFIG_FILE:-"$USER_CONFIG_DIR/config"}"
 
 # Minimal confirm fallback (reads from /dev/tty if possible)
 confirm() {
@@ -166,6 +171,21 @@ if [[ -d "$SHARE_DIR" ]]; then
     rm -rf -- "$SHARE_DIR"
   fi
 fi
+
+if $PURGE; then
+  echo "==> --purge supplied: removing user config"
+  if [[ -f "$USER_CONFIG_FILE" ]]; then
+    $DRY && echo "DRY: rm -f -- $USER_CONFIG_FILE" || rm -f -- "$USER_CONFIG_FILE"
+  fi
+  # remove dir if empty
+  if [[ -d "$USER_CONFIG_DIR" ]]; then
+    $DRY && echo "DRY: rmdir --ignore-fail-on-non-empty $USER_CONFIG_DIR" \
+         || rmdir --ignore-fail-on-non-empty "$USER_CONFIG_DIR" 2>/dev/null || true
+  fi
+else
+  echo "==> Keeping user config at $USER_CONFIG_FILE (use --purge to remove)"
+fi
+
 
 # Tidy potentially empty directories
 echo "==> Tidying empty dirs"
