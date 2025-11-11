@@ -1,2 +1,7 @@
-# Prepend tests/helpers/slurm_mocks to PATH for fake slurm binaries
-export PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/slurm_mocks:$PATH"
+# Prepend our slurm_mocks dir to PATH for this test file
+mock_slurm_path() {
+  local here="${BATS_TEST_DIRNAME:-$(cd "$(dirname "${BATS_TEST_FILENAME}")" && pwd -P)}"
+  export PATH="$here/../helpers/slurm_mocks:$PATH"
+}
+
+

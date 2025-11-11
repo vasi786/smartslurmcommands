@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# prints a fixed set of jobs, respecting -h and -o and -u/-t minimally
+set -euo pipefail
+header=true
+format="%i|%j|%T|%Z|%M|%S|%R|%P"  # match your lib/slurm.sh
+user=""
+state=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h) header=false; shift ;;
+    -o) format="$2"; shift 2 ;;
+    -u) user="$2"; shift 2 ;;
+    -t) state="$2"; shift 2 ;;
+    *)  shift ;;
+  esac
+done
+
+# fixture rows (JobID|JobName|State|WorkDir|Elapsed|Start|Reason|Partition)
+rows=$'1581|foo_run|RUNNING|/w/dirA|00:12:34|2025-11-10T10:00:00|tcn[1-2]|genoa
+1582|bar_dep|PENDING|/w/dirB|0:00|N/A|(Dependency)|genoa
+1583|baz_long|RUNNING|/w/dirC|1-02:03:04|2025-11-09T08:00:00|tcn[3]|rome'
+
+# apply crude state filter
+if [[ -n "$state" ]]; then
+  rows="$(awk -F'|' -v s="$state" 'toupper($3)==toupper(s)' <<<"$rows")"
+fi
+
+# ignore -u for mock
+
+# print
+if $header; then
+  # emulate squeue header-ish if not `-h` (loose)
+  echo "JOBID|NAME|STATE|WORKDIR|ELAPSED|START|REASON|PARTITION"
+fi
+echo "$rows"
+

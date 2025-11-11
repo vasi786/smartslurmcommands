@@ -1,0 +1,5 @@
+# tests/helpers/slurm_mocks/scontrol
+#!/usr/bin/env bash
+# minimal stub; can be extended when you add dep-tree tests
+exit 0
+
