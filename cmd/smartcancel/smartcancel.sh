@@ -6,7 +6,7 @@ IFS=$'\n\t'
 # --- Libs (keep order: core -> cfg -> colors/log -> io/util -> slurm)
 SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
-# source "$SSC_HOME/lib/cfg.sh";      cfg::load
+source "$SSC_HOME/lib/cfg.sh";      cfg::load
 # source "$SSC_HOME/lib/colors.sh";   color::setup "$(cfg::get color auto)"
 # source "$SSC_HOME/lib/log.sh";      LOG_LEVEL="$(cfg::get log_level info)"
 source "$SSC_HOME/lib/io.sh"
