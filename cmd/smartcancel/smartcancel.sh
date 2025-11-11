@@ -92,6 +92,20 @@ if (( SELECTOR_COUNT == 0 )); then
   die 2 "Refusing to operate with no selector. Use one of: --this-dir, --dir, --name, --contains, --contains-from-stdin, --latest, --state."
 fi
 
+# If user asked to read patterns from stdin, do it now
+if $CONTAINS_FROM_STDIN; then
+  if [[ -t 0 ]]; then
+    die 2 "--contains-from-stdin was given, but stdin is a TTY (no input). Pipe patterns in."
+  fi
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && CONTAINS_PATTERNS+=("$line")
+  done
+  if ((${#CONTAINS_PATTERNS[@]} == 0)); then
+    die 2 "--contains-from-stdin received no patterns on stdin."
+  fi
+fi
+
+
 # Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason for a user (default: current)
 SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
 CANDIDATES="$SQUEUE_CACHE"
