@@ -22,7 +22,7 @@ dir="${1:-$PWD}"
 [[ -d "$dir" ]] || die 2 "Directory not found: $dir"
 
 # Get job names from #SBATCH --job-name in top-level *.sh of the directory
-mapfile -t names < <(slurm::job_names_from_dir "$dir")
+mapfile -t names < <(util::job_names_from_dir "$dir")
 [[ ${#names[@]} -gt 0 ]] || {
   echo "No #SBATCH --job-name found in *.sh under: $dir" >&2
   exit 0
