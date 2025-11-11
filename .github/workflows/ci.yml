@@ -1,17 +1,35 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
 jobs:
-  lint-and-test:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install deps
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure scripts are executable (defensive)
+        run: |
+          chmod +x cmd/*/*.sh || true
+          chmod +x scripts/*.sh || true
+          chmod +x tests/helpers/slurm_mocks/* || true
+
+      - name: Install dependencies (bats + shellcheck)
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck bats shfmt
-      - name: Lint
-        run: shellcheck bin/* lib/*.sh cmd/*/*.sh || true
-      - name: Unit tests
-        run: bats tests/unit || true
-      - name: Integration tests
-        run: bats tests/integration || true
+          sudo apt-get install -y bats shellcheck
+
+      - name: Lint (shellcheck)
+        run: |
+          shellcheck lib/*.sh || true
+          shellcheck cmd/*/*.sh || true
+
+      - name: Run unit & integration tests (bats)
+        run: |
+          bats tests
+
