@@ -47,3 +47,50 @@ time::older_than() {
 # current_user helper (unchanged)
 current_user() { id -un 2>/dev/null || echo "${USER:-unknown}"; }
 
+# Generic: keep rows whose field f matches any value from the first input.
+# Usage:
+#   printf '%s\n' a b | util::filter_by_field 2 <<<"1|a|X"$'\n'"2|c|Y"
+#   -> 1|a|X
+util::filter_by_field() {
+  local field="${1:?need field number}"
+  awk -F'|' -v f="$field" 'NR==FNR { set[$1]=1; next } set[$f] { print }'
+}
+
+# Return newline-separated job names declared in #SBATCH directives within *.sh in DIR.
+# Handles:
+#   #SBATCH --job-name=NAME
+#   #SBATCH --job-name NAME
+#   #SBATCH --job-name="name with spaces"
+util::job_names_from_dir() {
+  local dir="${1:-$PWD}"
+  [[ -d "$dir" ]] || { echo "error: directory not found: $dir" >&2; return 2; }
+
+  # Find scripts (top-level only)
+  mapfile -t files < <(find "$dir" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | sort)
+  [[ ${#files[@]} -gt 0 ]] || return 0  # no scripts -> no names
+
+  # Grep SBATCH job-name lines and extract the value
+  # We strip leading/trailing spaces and optional quotes.
+  grep -hE '^[[:space:]]*#SBATCH[[:space:]]+--job-name(=|[[:space:]])' "${files[@]}" 2>/dev/null \
+  | sed -E 's/^[[:space:]]*#SBATCH[[:space:]]+--job-name[[:space:]]*=?[[:space:]]*//; s/[[:space:]]+$//' \
+  | sed -E 's/^"(.*)"$/\1/; s/'"'"'(.*)'"'"'$/\1/' \
+  | awk 'NF' \
+  | sort -u
+}
+
+# Given names[] and pipe-delimited candidates, keep rows where JobName ($2) ∈ names.
+# Reads candidates from stdin; prints filtered rows.
+util::filter_candidates_by_job_names() {
+  local -a names=("$@")
+  [[ ${#names[@]} -gt 0 ]] || { cat; return 0; }
+  printf '%s\n' "${names[@]}" | util::filter_by_field 2
+}
+
+# Convenience: filter candidates (stdin) by job names found in dir’s *.sh (#SBATCH --job-name)
+util::apply_this_dir_filter() {
+  local dir="${1:?dir}"
+  mapfile -t _names < <(util::job_names_from_dir "$dir")
+  [[ ${#_names[@]} -gt 0 ]] || { : > /dev/stdout; return 0; }
+  printf '%s\n' "${_names[@]}" | util::filter_by_field 2
+}
+

@@ -66,28 +66,6 @@ expand_with_dependents() {
   printf "%s\n" "$ids"
 }
 
-# Return newline-separated job names declared in #SBATCH directives within *.sh in DIR.
-# Handles:
-#   #SBATCH --job-name=NAME
-#   #SBATCH --job-name NAME
-#   #SBATCH --job-name="name with spaces"
-slurm::job_names_from_dir() {
-  local dir="${1:-$PWD}"
-  [[ -d "$dir" ]] || { echo "error: directory not found: $dir" >&2; return 2; }
-
-  # Find scripts (top-level only)
-  mapfile -t files < <(find "$dir" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | sort)
-  [[ ${#files[@]} -gt 0 ]] || return 0  # no scripts -> no names
-
-  # Grep SBATCH job-name lines and extract the value
-  # We strip leading/trailing spaces and optional quotes.
-  grep -hE '^[[:space:]]*#SBATCH[[:space:]]+--job-name(=|[[:space:]])' "${files[@]}" 2>/dev/null \
-  | sed -E 's/^[[:space:]]*#SBATCH[[:space:]]+--job-name[[:space:]]*=?[[:space:]]*//; s/[[:space:]]+$//' \
-  | sed -E 's/^"(.*)"$/\1/; s/'"'"'(.*)'"'"'$/\1/' \
-  | awk 'NF' \
-  | sort -u
-}
-
 # squeue lines (JobID|JobName|State|WorkDir|Elapsed|StartTime) for given job names (current user).
 slurm::squeue_by_job_names() {
   require_cmd squeue
