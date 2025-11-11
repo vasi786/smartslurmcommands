@@ -52,19 +52,20 @@ DRY=false
 YES=false
 REASON=""
 CONTAINS_FROM_STDIN=false
+SELECTOR_COUNT=0   # counts “narrowing” selectors
 
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --this-dir) THIS_DIR=true; shift ;;
-    --dir) DIR_FILTER="$2"; shift 2 ;;
-    --name) NAME_EQ="$2"; shift 2 ;;
-    --contains) NAME_CONTAINS="$2"; shift 2 ;;
-    --contains-from-stdin) CONTAINS_FROM_STDIN=true; shift ;;
-    --older-than) OLDER_THAN="$2"; shift 2 ;;
-    --latest) LATEST=true; shift ;;
+    --this-dir) THIS_DIR=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));  shift ;;
+    --dir) DIR_FILTER="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
+    --name) NAME_EQ="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
+    --contains) NAME_CONTAINS="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
+    --contains-from-stdin) CONTAINS_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
+    --older-than) OLDER_THAN="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
+    --latest) LATEST=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --state)
-      val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; shift 2
+      val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2
       case "$val" in
         dependency|dep|deps)
           STATE_FILTER="PENDING"
@@ -86,6 +87,10 @@ while [[ $# -gt 0 ]]; do
     *) die 2 "Unknown argument: $1 (see --help)";;
   esac
 done
+
+if (( SELECTOR_COUNT == 0 )) && ! $ALLOW_ALL; then
+  die 2 "Refusing to operate with no selector. Use one of: --this-dir, --dir, --name, --contains, --contains-from-stdin, --latest, --state."
+fi
 
 # Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason for a user (default: current)
 SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
