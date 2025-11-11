@@ -2,17 +2,21 @@
 # install.sh — user-space install (no sudo)
 # Usage:
 #   ./scripts/install.sh                     # installs to ~/.local
-#   ./scripts/install.sh /custom/prefix      # e.g., /home/user/.local-alt
+#   ./scripts/install.sh /custom/prefix /custom/config_prefix      # e.g., /home/user/.local-alt /home/user/.config-alt
 
 set -Eeuo pipefail
 IFS=$'\n\t'
 
 # ---------- Config: default to ~/.local ----------
 DEFAULT_PREFIX="${HOME}/.local"
+DEFAULT_CONFIG_PREFIX="${HOME}/.config"
 PREFIX="${1:-$DEFAULT_PREFIX}"
+CONFIG_PREFIX="${2:-$DEFAULT_CONFIG_PREFIX}"
 BIN_DIR="${PREFIX}/bin"
 SHARE_DIR="${PREFIX}/share/smartslurmcommands"
 MAN_DIR="${PREFIX}/share/man/man1"
+USER_CONFIG_DIR="${CONFIG_PREFIX}/smartslurmcommands"
+USER_CONFIG_FILE="$USER_CONFIG_DIR/config"
 
 # ---------- Resolve repo root ----------
 _resolve_realpath() {
@@ -41,7 +45,26 @@ echo "    MAN_DIR  : $MAN_DIR"
 echo
 
 # ---------- Create dirs ----------
-mkdir -p "$BIN_DIR" "$SHARE_DIR" "$MAN_DIR"
+mkdir -p "$BIN_DIR" "$SHARE_DIR" "$MAN_DIR" "$USER_CONFIG_DIR"
+
+# ---------- Create config file --------------
+if [[ ! -f "$USER_CFG_FILE" ]]; then
+  cat > "$USER_CFG_FILE" <<'EOF'
+# smartslurmcommands user config (overrides)
+# Lines are KEY="VALUE" (bash-quoted). This file is never overwritten by install.
+# You can export SSC_KEY env vars to override temporarily (e.g., SSC_SMARTCANCEL_DEFAULT_REASON=...).
+
+# Default reason used by smartcancel when --reason is not passed
+SMARTCANCEL_DEFAULT_REASON="smart"
+
+# Future options:
+# COLOR_MODE="auto"      # auto|always|never (if you enable colors)
+# LOG_LEVEL="info"       # debug|info|warn|error (if you enable logging)
+EOF
+  echo "    Created $USER_CFG_FILE"
+else
+  echo "    Found existing $USER_CFG_FILE (left untouched)"
+fi
 
 # ---------- Copy shared assets to SHARE_DIR ----------
 echo "==> Copying shared assets"
