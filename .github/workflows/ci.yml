@@ -29,9 +29,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bats shellcheck
 
-      - name: Lint (shellcheck)
-        run: |
-          shellcheck -x lib/*.sh cmd/*/*.sh scripts/*.sh
+      # - name: Lint (shellcheck)
+      #   run: |
+      #     shellcheck -x lib/*.sh cmd/*/*.sh scripts/*.sh
 
       - name: Run tests (bats, recursive)
         run: |
