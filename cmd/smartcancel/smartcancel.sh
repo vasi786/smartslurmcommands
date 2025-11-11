@@ -54,7 +54,7 @@ PARTITION_FILTER=""
 REASON_FILTER=""
 LATEST=false
 DRY=false
-YES=false
+FORCE=false
 REASON="$DEFAULT_REASON"
 CONTAINS_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
@@ -89,7 +89,7 @@ while [[ $# -gt 0 ]]; do
     # --with-dependents) WITH_DEPS=true; shift ;;
     # --reason) REASON="$2"; shift 2 ;;
     --dry-run) DRY=true; shift ;;
-    --force) YES=true; shift ;;
+    --force) FORCE=true; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die 2 "Unknown argument: $1 (see --help)";;
   esac
@@ -225,7 +225,7 @@ if $DRY; then
   exit 0
 fi
 
-if ! $YES; then
+if ! $FORCE; then
   echo
   confirm "Cancel $(wc -l <<<"$TARGET_IDS" | tr -d ' ') job(s)?" || { echo "Aborted."; exit 1; }
 fi
