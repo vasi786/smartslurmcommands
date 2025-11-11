@@ -85,7 +85,7 @@ while [[ $# -gt 0 ]]; do
           ;;
       esac
       ;;
-    --partition) PARTITION_FILTER="$2"; shift 2 ;;
+    --partition) PARTITION_FILTER="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1)); shift 2 ;;
     # --with-dependents) WITH_DEPS=true; shift ;;
     # --reason) REASON="$2"; shift 2 ;;
     --dry-run) DRY=true; shift ;;
