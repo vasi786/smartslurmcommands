@@ -35,7 +35,7 @@ Dependency handling (deprecated):
 
 Behavior:
   --dry-run                  Show what would be cancelled
-  --yes                      Do not prompt
+  --force                      Do not prompt
   -h, --help                 Show this help
 EOF
 }
@@ -89,7 +89,7 @@ while [[ $# -gt 0 ]]; do
     # --with-dependents) WITH_DEPS=true; shift ;;
     # --reason) REASON="$2"; shift 2 ;;
     --dry-run) DRY=true; shift ;;
-    --yes) YES=true; shift ;;
+    --force) YES=true; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die 2 "Unknown argument: $1 (see --help)";;
   esac
