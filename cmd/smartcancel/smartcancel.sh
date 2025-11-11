@@ -88,7 +88,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if (( SELECTOR_COUNT == 0 )) && ! $ALLOW_ALL; then
+if (( SELECTOR_COUNT == 0 )); then
   die 2 "Refusing to operate with no selector. Use one of: --this-dir, --dir, --name, --contains, --contains-from-stdin, --latest, --state."
 fi
 
