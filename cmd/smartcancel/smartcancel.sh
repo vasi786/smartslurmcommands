@@ -28,7 +28,7 @@ Filters (combine as needed):
   --state STATE              Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
   --latest                   Pick only the latest matching job (by StartTime or JobID)
 
-Dependency handling (depricated):
+Dependency handling (deprecated):
   --with-dependents          Also cancel jobs that depend on selected jobs (reverse dependency walk)
 
 Behavior:
@@ -84,6 +84,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason for a user (default: current)
 SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
 CANDIDATES="$SQUEUE_CACHE"
 
