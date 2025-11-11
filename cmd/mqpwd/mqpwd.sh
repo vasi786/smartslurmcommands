@@ -9,6 +9,7 @@ IFS=$'\n\t'
 SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/slurm.sh"
+source "$SSC_HOME/lib/util.sh"
 # source "$SSC_HOME/lib/colors.sh"; color::setup auto
 
 # Accept 0 or 1 argument (directory)
@@ -26,6 +27,7 @@ mapfile -t names < <(slurm::job_names_from_dir "$dir")
   echo "No #SBATCH --job-name found in *.sh under: $dir" >&2
   exit 0
 }
+
 
 # Get matching JobIDs for these names
 ids="$(slurm::job_ids_by_job_names "$(current_user)" "${names[@]}")"
