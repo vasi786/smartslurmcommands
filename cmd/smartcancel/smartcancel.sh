@@ -121,17 +121,12 @@ if $THIS_DIR || [[ -n "$DIR_FILTER" ]]; then
   dir="${DIR_FILTER:-$PWD}"
   [[ -d "$dir" ]] || die 2 "Directory not found: $dir"
 
-  # Extract job names from sbatch scripts in that dir
-  mapfile -t _names < <(slurm::job_names_from_dir "$dir")
+  mapfile -t _names < <(util::job_names_from_dir "$dir")
   [[ ${#_names[@]} -gt 0 ]] || die 0 "No #SBATCH --job-name found in *.sh under: $dir"
 
-  # Keep only lines whose JobName ($2) is in _names
-  # Use AWK "two-file trick": first input builds a set from names, second filters CANDIDATES
-  CANDIDATES="$(
-    awk -F'|' 'NR==FNR { set[$1]=1; next } set[$2] { print $0 }' \
-      <(printf '%s\n' "${_names[@]}") \
-      <(printf '%s\n' "$CANDIDATES")
-  )"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_job_names "${_names[@]}")"
+  # or one-liner:
+  # CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::apply_this_dir_filter "$dir")"
 fi
 
 # Name filters
