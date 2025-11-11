@@ -6,6 +6,13 @@
 set -Eeuo pipefail
 IFS=$'\n\t'
 
+# shellcheck source=lib/core.sh
+# shellcheck source=lib/cfg.sh
+# shellcheck source=lib/util.sh
+# shellcheck source=lib/slurm.sh
+# shellcheck source=lib/ui.sh
+
+
 SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/slurm.sh"

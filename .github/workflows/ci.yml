@@ -13,7 +13,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Ensure scripts are executable (defensive)
+      - name: List repo (debug)
+        run: |
+          pwd
+          ls -R
+
+      - name: Ensure scripts are executable
         run: |
           chmod +x cmd/*/*.sh || true
           chmod +x scripts/*.sh || true
@@ -26,10 +31,9 @@ jobs:
 
       - name: Lint (shellcheck)
         run: |
-          shellcheck lib/*.sh || true
-          shellcheck cmd/*/*.sh || true
+          shellcheck -x lib/*.sh cmd/*/*.sh scripts/*.sh
 
-      - name: Run unit & integration tests (bats)
+      - name: Run tests (bats, recursive)
         run: |
-          bats tests
+          bats -r tests
 

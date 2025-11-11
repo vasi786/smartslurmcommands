@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
+
 # slurm.sh - Slurm library module
 # Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime for a user (default: current)
 slurm::squeue_lines() {

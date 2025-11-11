@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+
 # Convert Slurm elapsed (%M) to seconds.
 # Supports: D-HH:MM:SS | HH:MM:SS | MM:SS | "0:00" | "N/A" | "-"
 time::elapsed_to_seconds() {
