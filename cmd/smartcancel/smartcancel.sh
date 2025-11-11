@@ -25,7 +25,7 @@ Filters (combine as needed):
   --name NAME                Exact job name match
   --contains SUBSTR          Job name contains substring
   --older-than DUR           Only jobs with elapsed time > DUR (e.g., 10m, 2h)
-  --state STATE              Only jobs in this Slurm state (e.g., RUNNING, PENDING)
+  --state STATE              Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
   --latest                   Pick only the latest matching job (by StartTime or JobID)
 
 Dependency handling (depricated):
