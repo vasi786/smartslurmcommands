@@ -24,6 +24,7 @@ Filters (combine as needed):
   --dir PATH                 Cancel jobs whose WorkDir == PATH (fallback: name == basename(PATH))
   --name NAME                Exact job name match
   --contains SUBSTR          Job name contains substring
+  --contains_from_stdin      with this option, smartcancel accept's patterns from stdin (ex: somecommand |smartcancel --contains-from-stdin --dry-run)
   --older-than DUR           Only jobs with elapsed time > DUR (e.g., 10m, 2h)
   --state STATE              Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
   --latest                   Pick only the latest matching job (by StartTime or JobID)
@@ -50,6 +51,7 @@ LATEST=false
 DRY=false
 YES=false
 REASON=""
+CONTAINS_FROM_STDIN=false
 
 
 while [[ $# -gt 0 ]]; do
@@ -58,6 +60,7 @@ while [[ $# -gt 0 ]]; do
     --dir) DIR_FILTER="$2"; shift 2 ;;
     --name) NAME_EQ="$2"; shift 2 ;;
     --contains) NAME_CONTAINS="$2"; shift 2 ;;
+    --contains-from-stdin) CONTAINS_FROM_STDIN=true; shift ;;
     --older-than) OLDER_THAN="$2"; shift 2 ;;
     --latest) LATEST=true; shift ;;
     --state)
@@ -111,6 +114,11 @@ if [[ -n "$NAME_EQ" ]]; then
 fi
 if [[ -n "$NAME_CONTAINS" ]]; then
   CANDIDATES="$(awk -F'|' -v s="$NAME_CONTAINS" 'index($2,s)>0' <<<"$CANDIDATES")"
+fi
+if $CONTAINS_FROM_STDIN; then
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && CONTAINS_PATTERNS+=("$line")
+  done
 fi
 
 # Time filter in pure Bash (no awk math needed)
