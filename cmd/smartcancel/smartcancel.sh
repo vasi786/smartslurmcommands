@@ -27,6 +27,7 @@ Filters (combine as needed):
   --contains-from-stdin      with this option, smartcancel accept's patterns from stdin (ex: somecommand |smartcancel --contains-from-stdin --dry-run)
   --older-than DUR           Only jobs with elapsed time > DUR (e.g., 10m, 2h)
   --state STATE              Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
+  --partition NAME[,NAME...]   Only jobs in these Slurm partitions
   --latest                   Pick only the latest matching job (by StartTime or JobID)
 
 Dependency handling (deprecated):
@@ -48,6 +49,7 @@ NAME_EQ=""
 NAME_CONTAINS=""
 OLDER_THAN=""
 STATE_FILTER=""
+PARTITION_FILTER=""
 # Reason filter is only used when --state dependency is supplied
 REASON_FILTER=""
 LATEST=false
@@ -83,6 +85,7 @@ while [[ $# -gt 0 ]]; do
           ;;
       esac
       ;;
+    --partition) PARTITION_FILTER="$2"; shift 2 ;;
     # --with-dependents) WITH_DEPS=true; shift ;;
     # --reason) REASON="$2"; shift 2 ;;
     --dry-run) DRY=true; shift ;;
@@ -147,6 +150,19 @@ if ((${#CONTAINS_PATTERNS[@]} > 0)); then
         for (p in pat) if (index($2,p)>0) { print; next }
       }
     ' <(printf '%s\n' "${CONTAINS_PATTERNS[@]}") <(printf '%s\n' "$CANDIDATES")
+  )"
+fi
+if [[ -n "$PARTITION_FILTER" ]]; then
+  # Build a regex like ^(genoa|rome)$ and match after stripping any trailing '*'
+  part_re="^($(printf '%s' "$PARTITION_FILTER" | sed 's/,/|/g'))$"
+  CANDIDATES="$(
+    awk -F'|' -v re="$part_re" '
+      {
+        p=$8
+        sub(/\*$/,"",p)      # squeue sometimes marks default partition with *
+        if (p ~ re) print
+      }
+    ' <<<"$CANDIDATES"
   )"
 fi
 
