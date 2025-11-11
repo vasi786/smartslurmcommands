@@ -52,8 +52,13 @@ current_user() { id -un 2>/dev/null || echo "${USER:-unknown}"; }
 #   printf '%s\n' a b | util::filter_by_field 2 <<<"1|a|X"$'\n'"2|c|Y"
 #   -> 1|a|X
 util::filter_by_field() {
-  local field="${1:?need field number}"
-  awk -F'|' -v f="$field" 'NR==FNR { set[$1]=1; next } set[$f] { print }'
+  local field="${1:?need field number}"; shift
+  # If no values provided, just pass through
+  [[ $# -gt 0 ]] || { cat; return 0; }
+  awk -F'|' -v f="$field" '
+  NR==FNR { set[$1]=1; next }    # First input: the value set (one per line)
+  ($f in set)                     # Second input: candidates from stdin
+  ' <(printf '%s\n' "$@") -
 }
 
 # Return newline-separated job names declared in #SBATCH directives within *.sh in DIR.
@@ -81,9 +86,7 @@ util::job_names_from_dir() {
 # Given names[] and pipe-delimited candidates, keep rows where JobName ($2) ∈ names.
 # Reads candidates from stdin; prints filtered rows.
 util::filter_candidates_by_job_names() {
-  local -a names=("$@")
-  [[ ${#names[@]} -gt 0 ]] || { cat; return 0; }
-  printf '%s\n' "${names[@]}" | util::filter_by_field 2
+  util::filter_by_field 2 "$@"
 }
 
 # Convenience: filter candidates (stdin) by job names found in dir’s *.sh (#SBATCH --job-name)
@@ -91,6 +94,6 @@ util::apply_this_dir_filter() {
   local dir="${1:?dir}"
   mapfile -t _names < <(util::job_names_from_dir "$dir")
   [[ ${#_names[@]} -gt 0 ]] || { : > /dev/stdout; return 0; }
-  printf '%s\n' "${_names[@]}" | util::filter_by_field 2
+  util::filter_by_field "${_names[@]}"
 }
 
