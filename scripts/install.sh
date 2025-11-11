@@ -64,7 +64,7 @@ EOF
   echo "==>  Created $USER_CONFIG_FILE"
   echo ""
 else
-  echo "    Found existing $USER_CONFIG_FILE (left untouched)"
+  echo "==>   Found existing $USER_CONFIG_FILE (left untouched)"
   echo ""
 fi
 
