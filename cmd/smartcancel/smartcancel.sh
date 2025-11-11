@@ -234,7 +234,7 @@ fi
 while read -r id; do
   [[ -z "$id" ]] && continue
   if [[ -n "$REASON" ]]; then
-    scancel --reason "$REASON" "$id" || log_warn "Failed to cancel $id"
+    scancel "$id" || log_warn "Failed to cancel $id"
   else
     scancel "$id" || log_warn "Failed to cancel $id"
   fi
