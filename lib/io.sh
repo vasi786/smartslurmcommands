@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck shell=bash
 
 # io.sh - Io library module
 # --- Minimal fallbacks if io.sh/log.sh aren’t sourced

@@ -24,10 +24,10 @@ jobs:
           chmod +x scripts/*.sh || true
           chmod +x tests/helpers/slurm_mocks/* || true
 
-      - name: Install dependencies (bats + shellcheck)
+      - name: Install dependencies (bats)
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats shellcheck
+          sudo apt-get install -y bats
 
       # - name: Lint (shellcheck)
       #   run: |

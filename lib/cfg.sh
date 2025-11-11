@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck shell=bash
 
 # cfg.sh - Cfg library module
 # Global assoc map
