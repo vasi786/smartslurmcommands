@@ -38,6 +38,9 @@ Behavior:
   -h, --help                 Show this help
 EOF
 }
+
+DEFAULT_REASON="$(cfg::get SMARTCANCEL_DEFAULT_REASON "")"
+
 # --- Parse args
 THIS_DIR=false
 DIR_FILTER=""
@@ -45,12 +48,12 @@ NAME_EQ=""
 NAME_CONTAINS=""
 OLDER_THAN=""
 STATE_FILTER=""
+# Reason filter is only used when --state dependency is supplied
 REASON_FILTER=""
 LATEST=false
-# WITH_DEPS=false
 DRY=false
 YES=false
-REASON=""
+REASON="$DEFAULT_REASON"
 CONTAINS_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
 declare -a CONTAINS_PATTERNS=()
