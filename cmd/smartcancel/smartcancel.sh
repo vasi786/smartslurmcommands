@@ -53,6 +53,7 @@ YES=false
 REASON=""
 CONTAINS_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
+declare -a CONTAINS_PATTERNS=()
 
 
 while [[ $# -gt 0 ]]; do
@@ -134,10 +135,16 @@ fi
 if [[ -n "$NAME_CONTAINS" ]]; then
   CANDIDATES="$(awk -F'|' -v s="$NAME_CONTAINS" 'index($2,s)>0' <<<"$CANDIDATES")"
 fi
-if $CONTAINS_FROM_STDIN; then
-  while IFS= read -r line; do
-    [[ -n "$line" ]] && CONTAINS_PATTERNS+=("$line")
-  done
+# Multiple contains patterns from stdin
+if ((${#CONTAINS_PATTERNS[@]} > 0)); then
+  CANDIDATES="$(
+    awk -F'|' '
+      NR==FNR { pat[$0]=1; next }
+      {
+        for (p in pat) if (index($2,p)>0) { print; next }
+      }
+    ' <(printf '%s\n' "${CONTAINS_PATTERNS[@]}") <(printf '%s\n' "$CANDIDATES")
+  )"
 fi
 
 # Time filter in pure Bash (no awk math needed)
