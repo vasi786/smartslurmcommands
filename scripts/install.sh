@@ -61,9 +61,11 @@ SMARTCANCEL_DEFAULT_REASON="smart"
 # COLOR_MODE="auto"      # auto|always|never (if you enable colors)
 # LOG_LEVEL="info"       # debug|info|warn|error (if you enable logging)
 EOF
-  echo "    Created $USER_CONFIG_FILE"
+  echo "==>  Created $USER_CONFIG_FILE"
+  echo ""
 else
   echo "    Found existing $USER_CONFIG_FILE (left untouched)"
+  echo ""
 fi
 
 # ---------- Copy shared assets to SHARE_DIR ----------
