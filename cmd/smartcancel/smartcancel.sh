@@ -32,7 +32,6 @@ Dependency handling (depricated):
   --with-dependents          Also cancel jobs that depend on selected jobs (reverse dependency walk)
 
 Behavior:
-  --reason TEXT              Pass reason to scancel
   --dry-run                  Show what would be cancelled
   --yes                      Do not prompt
   -h, --help                 Show this help
