@@ -9,7 +9,7 @@ source "$SSC_HOME/lib/core.sh"
 # source "$SSC_HOME/lib/cfg.sh";      cfg::load
 # source "$SSC_HOME/lib/colors.sh";   color::setup "$(cfg::get color auto)"
 # source "$SSC_HOME/lib/log.sh";      LOG_LEVEL="$(cfg::get log_level info)"
-# source "$SSC_HOME/lib/io.sh"
+source "$SSC_HOME/lib/io.sh"
 source "$SSC_HOME/lib/util.sh"
 # source "$SSC_HOME/lib/args.sh"
 source "$SSC_HOME/lib/slurm.sh"
