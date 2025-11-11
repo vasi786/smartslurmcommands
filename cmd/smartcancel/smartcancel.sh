@@ -76,7 +76,7 @@ while [[ $# -gt 0 ]]; do
       esac
       ;;
     # --with-dependents) WITH_DEPS=true; shift ;;
-    --reason) REASON="$2"; shift 2 ;;
+    # --reason) REASON="$2"; shift 2 ;;
     --dry-run) DRY=true; shift ;;
     --yes) YES=true; shift ;;
     -h|--help) usage; exit 0 ;;
