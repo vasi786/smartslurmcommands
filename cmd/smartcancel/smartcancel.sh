@@ -111,7 +111,8 @@ if $CONTAINS_FROM_STDIN; then
     die 2 "--contains-from-stdin received no jobnames on stdin."
   fi
 fi
-# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason for a user (default: current)
+
+# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition for a user (default: current)
 SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
 CANDIDATES="$SQUEUE_CACHE"
 
@@ -129,10 +130,10 @@ fi
 
 # Name filters
 if [[ -n "$NAME_EQ" ]]; then
-  CANDIDATES="$(awk -F'|' -v n="$NAME_EQ" '($2 == n)' <<<"$CANDIDATES")"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_values 2 "$NAME_EQ")"
 fi
 if [[ -n "$NAME_CONTAINS" ]]; then
-  CANDIDATES="$(awk -F'|' -v s="$NAME_CONTAINS" 'index($2,s)>0' <<<"$CANDIDATES")"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_values 2 "$NAME_CONTAINS")"
 fi
 # Multiple contains patterns from stdin
 if ((${#CONTAINS_JOB_NAMES[@]} > 0)); then
