@@ -58,7 +58,7 @@ FORCE=false
 REASON="$DEFAULT_REASON"
 CONTAINS_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
-declare -a CONTAINS_PATTERNS=()
+declare -a CONTAINS_JOB_NAMES=() # will be used for contains-from-stdin
 
 
 while [[ $# -gt 0 ]]; do
@@ -105,14 +105,12 @@ if $CONTAINS_FROM_STDIN; then
     die 2 "--contains-from-stdin was given, but stdin is a TTY (no input). Pipe patterns in."
   fi
   while IFS= read -r line; do
-    [[ -n "$line" ]] && CONTAINS_PATTERNS+=("$line")
+    [[ -n "$line" ]] && CONTAINS_JOB_NAMES+=("$line")
   done
-  if ((${#CONTAINS_PATTERNS[@]} == 0)); then
-    die 2 "--contains-from-stdin received no patterns on stdin."
+  if ((${#CONTAINS_JOB_NAMES[@]} == 0)); then
+    die 2 "--contains-from-stdin received no jobnames on stdin."
   fi
 fi
-
-
 # Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason for a user (default: current)
 SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
 CANDIDATES="$SQUEUE_CACHE"
@@ -137,14 +135,14 @@ if [[ -n "$NAME_CONTAINS" ]]; then
   CANDIDATES="$(awk -F'|' -v s="$NAME_CONTAINS" 'index($2,s)>0' <<<"$CANDIDATES")"
 fi
 # Multiple contains patterns from stdin
-if ((${#CONTAINS_PATTERNS[@]} > 0)); then
+if ((${#CONTAINS_JOB_NAMES[@]} > 0)); then
   CANDIDATES="$(
     awk -F'|' '
       NR==FNR { pat[$0]=1; next }
       {
         for (p in pat) if (index($2,p)>0) { print; next }
       }
-    ' <(printf '%s\n' "${CONTAINS_PATTERNS[@]}") <(printf '%s\n' "$CANDIDATES")
+    ' <(printf '%s\n' "${CONTAINS_JOB_NAMES[@]}") <(printf '%s\n' "$CANDIDATES")
   )"
 fi
 if [[ -n "$PARTITION_FILTER" ]]; then
