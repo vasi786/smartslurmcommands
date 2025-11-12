@@ -65,19 +65,22 @@ util::filter_candidates_by_field_values() {
 # Usage:
 #   printf "%s\n" "1|alpha" "2|beta" "3|gamma" | util::filter_candidates_by_field_contains 2 ta mm
 #   -> "2|beta" and "3|gamma"
+
 util::filter_candidates_by_field_contains() {
   local field="${1:?need field number}"; shift
-  [[ $# -gt 0 ]] || { cat; return 0; }
+  if [ "$#" -eq 0 ]; then cat; return 0; fi
 
-  awk -F'|' -v f="$field" '
-    BEGIN { n=ARGC-1; for (i=1;i<=n;i++) subpat[i]=ARGV[i+1]; ARGC=1 }  # clear ARGV for stdin
-    {
-      val=$f
-      for (i=1;i<=n;i++) if (index(val, subpat[i])>0) { print; next }
-    }
-  ' "$@" -
+  # Build an alternation regex from the args, escaping regex metachars
+  local pattern="" term esc
+  for term in "$@"; do
+    esc=$(printf '%s' "$term" | sed -e 's/[][^$.*/\\?+(){}|]/\\&/g')
+    pattern="${pattern:+$pattern|}$esc"
+  done
+
+  awk -F'|' -v f="$field" -v pat="$pattern" '
+    $f ~ pat { print }
+  '
 }
-
 
 # Return newline-separated job names declared in #SBATCH directives within *.sh in DIR.
 # Handles:
@@ -105,7 +108,6 @@ util::job_names_from_dir() {
 util::filter_candidates_by_job_names() {
   util::filter_candidates_by_field_values 2 "$@"
 }
-
 # Convenience: filter candidates (stdin) by job names found in dir’s *.sh (#SBATCH --job-name)
 util::apply_this_dir_filter() {
   local dir="${1:?dir}"
