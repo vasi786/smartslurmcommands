@@ -1,6 +1,10 @@
 # tests/helpers/bats_helpers.bash
 # Robustly locate repo root (directory that contains lib/util.sh) by
 # walking up from the current test's directory.
+#
+# # Tip: When running a login shell (`bash -lc`) from Bats, pass vars via env:
+#   run env VAR=value bash -lc '...'
+# Direct VAR=value before the command does not propagate inside -lc.
 
 tests::repo_root() {
   # BATS sets BATS_TEST_DIRNAME; fallback to this file's dir
