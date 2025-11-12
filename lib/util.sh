@@ -49,9 +49,9 @@ current_user() { id -un 2>/dev/null || echo "${USER:-unknown}"; }
 
 # Generic: keep rows whose field f matches any value from the first input.
 # Usage:
-#   printf '%s\n' a b | util::filter_by_field 2 <<<"1|a|X"$'\n'"2|c|Y"
+#   printf '%s\n' a b | util::filter_candidates_by_field_values 2 <<<"1|a|X"$'\n'"2|c|Y"
 #   -> 1|a|X
-util::filter_by_field() {
+util::filter_candidates_by_field_values() {
   local field="${1:?need field number}"; shift
   # If no values provided, just pass through
   [[ $# -gt 0 ]] || { cat; return 0; }
@@ -60,6 +60,24 @@ util::filter_by_field() {
   ($f in set)                     # Second input: candidates from stdin
   ' <(printf '%s\n' "$@") -
 }
+
+# Keep rows whose FIELD contains ANY of the provided substrings.
+# Usage:
+#   printf "%s\n" "1|alpha" "2|beta" "3|gamma" | util::filter_candidates_by_field_contains 2 ta mm
+#   -> "2|beta" and "3|gamma"
+util::filter_candidates_by_field_contains() {
+  local field="${1:?need field number}"; shift
+  [[ $# -gt 0 ]] || { cat; return 0; }
+
+  awk -F'|' -v f="$field" '
+    BEGIN { n=ARGC-1; for (i=1;i<=n;i++) subpat[i]=ARGV[i+1]; ARGC=1 }  # clear ARGV for stdin
+    {
+      val=$f
+      for (i=1;i<=n;i++) if (index(val, subpat[i])>0) { print; next }
+    }
+  ' "$@" -
+}
+
 
 # Return newline-separated job names declared in #SBATCH directives within *.sh in DIR.
 # Handles:
@@ -85,7 +103,7 @@ util::job_names_from_dir() {
 # Given names[] and pipe-delimited candidates, keep rows where JobName ($2) ∈ names.
 # Reads candidates from stdin; prints filtered rows.
 util::filter_candidates_by_job_names() {
-  util::filter_by_field 2 "$@"
+  util::filter_candidates_by_field_values 2 "$@"
 }
 
 # Convenience: filter candidates (stdin) by job names found in dir’s *.sh (#SBATCH --job-name)
@@ -93,6 +111,6 @@ util::apply_this_dir_filter() {
   local dir="${1:?dir}"
   mapfile -t _names < <(util::job_names_from_dir "$dir")
   [[ ${#_names[@]} -gt 0 ]] || { : > /dev/stdout; return 0; }
-  util::filter_by_field "${_names[@]}"
+  util::filter_candidates_by_field_values "${_names[@]}"
 }
 
