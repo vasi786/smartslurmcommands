@@ -119,13 +119,9 @@ CANDIDATES="$SQUEUE_CACHE"
 if $THIS_DIR || [[ -n "$DIR_FILTER" ]]; then
   dir="${DIR_FILTER:-$PWD}"
   [[ -d "$dir" ]] || die 2 "Directory not found: $dir"
-
-  mapfile -t _names < <(util::job_names_from_dir "$dir")
-  [[ ${#_names[@]} -gt 0 ]] || die 0 "No #SBATCH --job-name found in *.sh under: $dir"
-
-  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_job_names "${_names[@]}")"
-  # or one-liner:
-  # CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::apply_this_dir_filter "$dir")"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" \
+    | util::apply_dir_filter_with_fallback "$dir")"
+  [[ -z "$CANDIDATES" ]] && { echo "No jobs found for this directory: $dir"; exit 0; }
 fi
 
 # Name filters
