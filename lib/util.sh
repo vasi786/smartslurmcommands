@@ -135,13 +135,19 @@ util::apply_dir_filter_with_fallback() {
   local candidates; candidates="$(cat)"
   mapfile -t _names < <(util::job_names_from_dir "$dir")
 
+  # Subset A: by names (if any)
+  local subset_names=""
   if [[ ${#_names[@]} -gt 0 ]]; then
-    printf '%s\n' "$candidates" | util::filter_candidates_by_job_names "${_names[@]}"
-  else
-    absdir="$(cd "$dir" && pwd)"
-    absdir=$(realpath "$absdir")
-    awk -F'|' -v d="$absdir" '$4 == d' <<<"$candidates"
+    subset_names="$(printf '%s\n' "$candidates" \
+      | util::filter_candidates_by_job_names "${_names[@]}")"
   fi
+
+  # Subset B: by WorkDir==absdir
+  local subset_dir=""
+  subset_dir="$(awk -F'|' -v d="$absdir" '$4 == d' <<<"$candidates")"
+
+  # Union (dedupe by full line)
+  printf '%s\n%s\n' "$subset_names" "$subset_dir" \
+  | awk 'NF' \
+  | awk '!seen[$0]++'
 }
-
-
