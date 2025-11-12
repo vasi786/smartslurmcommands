@@ -58,7 +58,7 @@ FORCE=false
 REASON="$DEFAULT_REASON"
 CONTAINS_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
-declare -a CONTAINS_JOB_NAMES=() # will be used for contains-from-stdin
+declare -a CONTAINS_JOB_NAMES=() # will be used for contains-from-stdin, for taking the multiple inputs from the stdin and treats as part or whole job names
 
 
 while [[ $# -gt 0 ]]; do
@@ -145,6 +145,7 @@ if ((${#CONTAINS_JOB_NAMES[@]} > 0)); then
     ' <(printf '%s\n' "${CONTAINS_JOB_NAMES[@]}") <(printf '%s\n' "$CANDIDATES")
   )"
 fi
+
 if [[ -n "$PARTITION_FILTER" ]]; then
   # Build a regex like ^(genoa|rome)$ and match after stripping any trailing '*'
   part_re="^($(printf '%s' "$PARTITION_FILTER" | sed 's/,/|/g'))$"
