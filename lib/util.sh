@@ -66,16 +66,15 @@ util::filter_by_field() {
 #   #SBATCH --job-name=NAME
 #   #SBATCH --job-name NAME
 #   #SBATCH --job-name="name with spaces"
+# Extract job names from #SBATCH in top-level *.sh files of a directory.
 util::job_names_from_dir() {
   local dir="${1:-$PWD}"
   [[ -d "$dir" ]] || { echo "error: directory not found: $dir" >&2; return 2; }
 
-  # Find scripts (top-level only)
   mapfile -t files < <(find "$dir" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | sort)
   [[ ${#files[@]} -gt 0 ]] || return 0  # no scripts -> no names
 
-  # Grep SBATCH job-name lines and extract the value
-  # We strip leading/trailing spaces and optional quotes.
+  # Grep SBATCH job-name lines and extract the value (handles = / space and quotes)
   grep -hE '^[[:space:]]*#SBATCH[[:space:]]+--job-name(=|[[:space:]])' "${files[@]}" 2>/dev/null \
   | sed -E 's/^[[:space:]]*#SBATCH[[:space:]]+--job-name[[:space:]]*=?[[:space:]]*//; s/[[:space:]]+$//' \
   | sed -E 's/^"(.*)"$/\1/; s/'"'"'(.*)'"'"'$/\1/' \
