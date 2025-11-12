@@ -133,6 +133,8 @@ util::filter_candidates_by_partition() {
 util::apply_dir_filter_with_fallback() {
   local dir="${1:?}"
   local candidates; candidates="$(cat)"
+  absdir=$(realpath "$dir")
+
   mapfile -t _names < <(util::job_names_from_dir "$dir")
 
   # Subset A: by names (if any)
