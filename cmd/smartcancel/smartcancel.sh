@@ -137,14 +137,15 @@ if [[ -n "$NAME_CONTAINS" ]]; then
 fi
 # Multiple contains patterns from stdin
 if ((${#CONTAINS_JOB_NAMES[@]} > 0)); then
-  CANDIDATES="$(
-    awk -F'|' '
-      NR==FNR { pat[$0]=1; next }
-      {
-        for (p in pat) if (index($2,p)>0) { print; next }
-      }
-    ' <(printf '%s\n' "${CONTAINS_JOB_NAMES[@]}") <(printf '%s\n' "$CANDIDATES")
-  )"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_values 2 "${CONTAINS_JOB_NAMES[@]}")"
+  # CANDIDATES="$(
+  #   awk -F'|' '
+  #     NR==FNR { pat[$0]=1; next }
+  #     {
+  #       for (p in pat) if (index($2,p)>0) { print; next }
+  #     }
+  #   ' <(printf '%s\n' "${CONTAINS_JOB_NAMES[@]}") <(printf '%s\n' "$CANDIDATES")
+  # )"
 fi
 
 if [[ -n "$PARTITION_FILTER" ]]; then
