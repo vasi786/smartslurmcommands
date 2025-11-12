@@ -138,28 +138,10 @@ fi
 # Multiple contains patterns from stdin
 if ((${#CONTAINS_JOB_NAMES[@]} > 0)); then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "${CONTAINS_JOB_NAMES[@]}")"
-  # CANDIDATES="$(
-  #   awk -F'|' '
-  #     NR==FNR { pat[$0]=1; next }
-  #     {
-  #       for (p in pat) if (index($2,p)>0) { print; next }
-  #     }
-  #   ' <(printf '%s\n' "${CONTAINS_JOB_NAMES[@]}") <(printf '%s\n' "$CANDIDATES")
-  # )"
 fi
 
 if [[ -n "$PARTITION_FILTER" ]]; then
-  # Build a regex like ^(genoa|rome)$ and match after stripping any trailing '*'
-  part_re="^($(printf '%s' "$PARTITION_FILTER" | sed 's/,/|/g'))$"
-  CANDIDATES="$(
-    awk -F'|' -v re="$part_re" '
-      {
-        p=$8
-        sub(/\*$/,"",p)      # squeue sometimes marks default partition with *
-        if (p ~ re) print
-      }
-    ' <<<"$CANDIDATES"
-  )"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_partition "$PARTITION_FILTER")"
 fi
 
 # Time filter in pure Bash (no awk math needed)
