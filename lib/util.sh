@@ -108,6 +108,21 @@ util::job_names_from_dir() {
 util::filter_candidates_by_job_names() {
   util::filter_candidates_by_field_values 2 "$@"
 }
+util::filter_candidates_by_partition() {
+  local parts="${1:-}"
+  [[ -n "$parts" ]] || { cat; return 0; }
+
+  # Convert comma-separated list → regex (e.g., genoa,rome → ^(genoa|rome)$)
+  local part_re="^($(printf '%s' "$parts" | sed 's/,/|/g'))$"
+
+  awk -F'|' -v re="$part_re" '
+    {
+      p = $8
+      sub(/\*$/, "", p)   # remove trailing * (default partition mark)
+      if (p ~ re) print
+    }
+  '
+}
 # Convenience: filter candidates (stdin) by job names found in dir’s *.sh (#SBATCH --job-name)
 util::apply_this_dir_filter() {
   local dir="${1:?dir}"
