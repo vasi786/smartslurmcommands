@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # slurm.sh - Slurm library module
-# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime for a user (default: current)
+# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition for a user (default: current)
 slurm::squeue_lines() {
   require_cmd squeue
   local state="${1:-}" user="${2:-$(current_user)}"
