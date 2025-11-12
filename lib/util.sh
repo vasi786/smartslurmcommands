@@ -124,10 +124,24 @@ util::filter_candidates_by_partition() {
   '
 }
 # Convenience: filter candidates (stdin) by job names found in dir’s *.sh (#SBATCH --job-name)
-util::apply_this_dir_filter() {
-  local dir="${1:?dir}"
+# util::apply_this_dir_filter() {
+#   local dir="${1:?dir}"
+#   mapfile -t _names < <(util::job_names_from_dir "$dir")
+#   [[ ${#_names[@]} -gt 0 ]] || { : > /dev/stdout; return 0; }
+#   util::filter_candidates_by_field_values "${_names[@]}"
+# }
+util::apply_dir_filter_with_fallback() {
+  local dir="${1:?}"
+  local candidates; candidates="$(cat)"
   mapfile -t _names < <(util::job_names_from_dir "$dir")
-  [[ ${#_names[@]} -gt 0 ]] || { : > /dev/stdout; return 0; }
-  util::filter_candidates_by_field_values "${_names[@]}"
+
+  if [[ ${#_names[@]} -gt 0 ]]; then
+    printf '%s\n' "$candidates" | util::filter_candidates_by_job_names "${_names[@]}"
+  else
+    absdir="$(cd "$dir" && pwd)"
+    absdir=$(realpath "$absdir")
+    awk -F'|' -v d="$absdir" '$4 == d' <<<"$candidates"
+  fi
 }
+
 
