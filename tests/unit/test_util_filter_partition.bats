@@ -34,4 +34,3 @@ setup() { source "$BATS_TEST_DIRNAME/../helpers/bats_helpers.bash"; }
   [ "$status" -eq 0 ]
   [ "$output" = "1|foo|RUNNING|/x|00:10|2025-11-12|reason|genoa*" ]
 }
-

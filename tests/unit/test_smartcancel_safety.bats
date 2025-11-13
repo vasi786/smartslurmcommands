@@ -23,4 +23,3 @@ teardown() {
   [ "$status" -eq 2 ]
   [[ "$output" =~ Refusing\ to\ operate\ with\ no\ selector ]]
 }
-

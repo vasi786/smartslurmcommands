@@ -50,4 +50,3 @@ setup() { source "$BATS_TEST_DIRNAME/../helpers/bats_helpers.bash"; }
   # order preserved from input
   [ "$output" = $'2|beta|Y\n3|gamma|Z' ]
 }
-

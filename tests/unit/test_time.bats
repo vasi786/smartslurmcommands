@@ -30,4 +30,3 @@ setup() {
   run bash -lc 'source "$SSC_HOME/lib/util.sh"; time::older_than 09:59 10m'
   [ "$status" -eq 1 ]
 }
-
