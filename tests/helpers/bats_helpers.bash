@@ -34,5 +34,3 @@ tests_source_libs() {
   source "$SSC_HOME/lib/util.sh"
   source "$SSC_HOME/lib/slurm.sh"
 }
-
-

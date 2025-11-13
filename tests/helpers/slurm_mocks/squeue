@@ -33,4 +33,3 @@ if $header; then
   echo "JOBID|NAME|STATE|WORKDIR|ELAPSED|START|REASON|PARTITION"
 fi
 echo "$rows"
-

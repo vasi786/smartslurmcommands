@@ -3,4 +3,3 @@
 # record cancels instead of executing
 echo "MOCK scancel: $*" >&2
 exit 0
-
