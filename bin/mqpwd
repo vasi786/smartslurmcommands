@@ -2,4 +2,3 @@
 # shim: mqpwd [PATH]
 SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/.." && pwd)"}"
 exec "$SSC_HOME/cmd/mqpwd/mqpwd.sh" "$@"
-
