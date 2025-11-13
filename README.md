@@ -84,7 +84,7 @@ scancel 15819623
 ```
 
 ## smartqueue
-The same flags can be passed to squeue, which makes it easier to jobs which are relevant.
+The same flags can be passed to squeue, which makes it easier to filter jobs which are relevant.
 This uses the same util functions which are being used by the smartcancel and will be implemented in the further versions of this software.
 
 
