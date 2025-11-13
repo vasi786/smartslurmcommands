@@ -40,13 +40,14 @@ You may combine multiple filters.
 Only jobs with elapsed time > `DUR` (e.g. `10m`, `2h`).
 
 - `--state STATE`
-Only jobs in this Slurm state (case-insensitive).
+Only jobs in this Slurm state (case-insensitive) will be filtered.
+Dependency which is a `reason` in the `squeue` output is also considered as a state.
 Examples: `RUNNING`, `PENDING`, `DEPENDENCY`.
 
 ### Partition filter
 
 - `--partition NAME[,NAME...]`
-Only jobs in these Slurm partitions.
+Only jobs which on these node partitions will be filtered.
 
 ### Latest-job filter
 
@@ -59,7 +60,9 @@ Pick only the latest matching job (by StartTime or JobID).
 Show what would be cancelled.
 
 - `--force`
-Do not prompt.
+Do not prompt the `confirm (yes/no)` statement before cancelling the job.
+
+### Additional
 
 - `-h`, `--help`
-Show this help.
+Show all these flags on the terminal.
