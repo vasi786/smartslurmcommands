@@ -5,11 +5,11 @@ For example, I submitted a simulation, and realized that I have missed a paramet
 job among hundreds of jobs I am running at the same time. Finding this job ID is a challenge, and I always thought of adding my own alias which does this for me smartly.
 You could ask, why not use the job name. In my case the job name is a 32 character random string and I would like to minimize the operations to cancel the latest job which I submitted an hour ago.
 I was surprised that this functionality doesn't exist natively or someone didn't develop a tool for these use cases.
-Thus, I took myself the challenge (fed it to GPT mostly) and wrote this simple wrapper commands on top of native slurm commands which are used by daily user to make things smarter and efficient in world of a HPC user.
+Thus, I took myself the challenge (fed it to GPT mostly) and wrote this simple wrapper commands on top of native slurm commands which are used by daily user to make things smarter and efficient in the world of a HPC user.
 
 ## [mqpwd](./docs/subcommands/mqpwd.md) (my-squeue-pwd)
 This command gets the jobs which are related to the current directory which you are in (if no args are passed).
-If you pass a path, then the command will fetch the jobs relating to that working directory.
+If you pass a path, then the command will fetch the jobs relating to the supplied path.
 ```
 [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd
     JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
@@ -24,7 +24,9 @@ If you pass a path, then the command will fetch the jobs relating to that workin
 
 ## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
 This is the command I wanted during my PhD.
-The biggest use case is to detect the jobs which are associated with the current working directory (I am in) and use that to fetch the jobs to cancel.
+The biggest use case is to detect the jobs which are associated with the current working directory (I am in) and use that to fetch the jobs and cancel them.
+
+### Featured flags
 
 `--this-dir` flag to the `smartcancel` will fetch the jobs related to the current working directory.
 
@@ -85,5 +87,3 @@ scancel 15819623
 ## smartqueue
 The same flags can be passed to squeue, which makes it easier to filter jobs which are relevant.
 This uses the same util functions which are being used by the smartcancel and will be implemented in the further versions of this software.
-
-
