@@ -11,11 +11,51 @@ source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/slurm.sh"
 source "$SSC_HOME/lib/util.sh"
 
-# Accept 0 or 1 argument (directory)
+usage() {
+  cat <<'EOF'
+mqpwd - List jobs associated with sbatch scripts or working directory
+
+Usage:
+  mqpwd
+      List jobs whose SBATCH --job-name appears in *.sh inside the current
+      directory, or whose WorkDir matches the current path.
+
+  mqpwd PATH
+      Same as above but using PATH instead of $PWD.
+
+Behavior:
+  • If the directory contains *.sh scripts with "#SBATCH --job-name", those
+    job names are extracted and used to filter squeue output.
+
+  • If no job-name lines are found, mqpwd falls back to matching jobs whose
+    WorkDir exactly matches the directory.
+
+Output:
+  Matches are printed using your mq-style squeue formatting.
+
+Examples:
+  mqpwd
+  mqpwd ~/projects/my_sim
+  mqpwd /scratch/work/pex13/simR2
+
+Notes:
+  This command NEVER cancels any job — it is read-only and safe.
+
+EOF
+}
+
+# Accept 0 or 1 argument (directory), or --help
 if [[ $# -gt 1 ]]; then
   echo "mqpwd: at most one PATH argument is allowed" >&2
   exit 2
 fi
+
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+esac
 
 dir="${1:-$PWD}"
 [[ -d "$dir" ]] || die 2 "Directory not found: $dir"
