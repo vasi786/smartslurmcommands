@@ -31,7 +31,7 @@ use that to fetch the jobs to cancel.
 
 `--latest` flag to the `smartcancel` will fetch the latest job in the squeue.
 
-many other flags for the smartcancel are explained in detail here [].
+Many other flags for the smartcancel are explained in detail here [smartcancel](./docs/subcommands/smartcancel.md).
 
 ### examples
 If my queue is as below:
@@ -82,5 +82,9 @@ JobID        JobName              State      Reason                    WorkDir
 Dry-run (no changes):
 scancel 15819623
 ```
+
+## smartqueue
+The same flags can be passed to squeue, which makes it easier to jobs which are relevant.
+This uses the same util functions which are being used by the smartcancel and will be implemented in the further versions of this software.
 
 
