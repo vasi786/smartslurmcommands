@@ -22,4 +22,3 @@ teardown() {
   [[ "$output" =~ baz_long ]]
   [[ ! "$output" =~ bar_dep ]]
 }
-
