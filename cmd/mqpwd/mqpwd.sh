@@ -69,6 +69,8 @@ fi
 
 # Build a cache of this user’s jobs in our pipe format:
 # %i|%j|%T|%Z|%M|%S|%R|%P  → id|name|state|workdir|elapsed|start|reason|partition
+# The below directive is issued as calling the squeue_lines function without any arguments is intentional (goes to default --> all jobs and current user)
+# shellcheck disable=SC2119
 SQUEUE_CACHE="$(slurm::squeue_lines)"   # make sure this outputs the 8 fields above
 
 # Filter by names from *.sh in dir OR by WorkDir==absdir (union, dedup)
@@ -90,4 +92,3 @@ fi
 #   %.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R
 require_cmd squeue
 squeue --me -j "$csv_ids" -o "%.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R"
-

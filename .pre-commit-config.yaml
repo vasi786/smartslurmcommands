@@ -20,7 +20,7 @@ repos:
     hooks:
       - id: shellcheck
         name: ShellCheck (bash linting)
-        args: ["--shell=bash"]
+        args: ["--shell=bash", "-x"]
         files: ^(cmd/|lib/|scripts/).+\.sh$
 
   # ------------------------------
