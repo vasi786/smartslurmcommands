@@ -99,7 +99,9 @@ if ((${#CMD_NAMES[@]} == 0)) && [[ -d "$BIN_DIR" ]]; then
     fi
   done < <(find "$BIN_DIR" -maxdepth 1 -type f -perm -u+x -print)
   # de-dup
-  CMD_NAMES=($(printf "%s\n" "${CMD_NAMES[@]}" | sort -u))
+  # CMD_NAMES=($(printf "%s\n" "${CMD_NAMES[@]}" | sort -u))
+  mapfile -t CMD_NAMES < <(printf "%s\n" "${CMD_NAMES[@]}" | sort -u)
+
 fi
 
 # List manpages we installed (use the copy under SHARE_DIR as the source of truth)
@@ -175,12 +177,20 @@ fi
 if $PURGE; then
   echo "==> --purge supplied: removing user config"
   if [[ -f "$USER_CONFIG_FILE" ]]; then
-    $DRY && echo "DRY: rm -f -- $USER_CONFIG_FILE" || rm -f -- "$USER_CONFIG_FILE"
+    if $DRY; then
+      echo "DRY: rm -f -- $USER_CONFIG_FILE"
+    else
+      rm -f -- "$USER_CONFIG_FILE"
+    fi
   fi
   # remove dir if empty
   if [[ -d "$USER_CONFIG_DIR" ]]; then
-    $DRY && echo "DRY: rmdir --ignore-fail-on-non-empty $USER_CONFIG_DIR" \
-         || rmdir --ignore-fail-on-non-empty "$USER_CONFIG_DIR" 2>/dev/null || true
+    if $DRY; then
+      echo "DRY: rmdir --ignore-fail-on-non-empty $USER_CONFIG_DIR"
+    else
+      # Attempt to remove directory; ignore errors just like original
+      rmdir --ignore-fail-on-non-empty "$USER_CONFIG_DIR" 2>/dev/null || true
+    fi
   fi
 else
   echo "==> Keeping user config at $USER_CONFIG_FILE (use --purge to remove)"
@@ -199,4 +209,3 @@ echo "Uninstall complete."
 echo
 echo "Note: If you added PATH or completion lines in ~/.bashrc manually, they remain."
 echo "      Remove lines referencing '${PREFIX}/bin' or 'smartslurmcommands/completions' if you no longer want them."
-

@@ -168,4 +168,3 @@ if [[ -x "$BIN_DIR/smartcancel" ]]; then
 fi
 
 echo "Installation complete into $PREFIX."
-
