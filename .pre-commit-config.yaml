@@ -11,6 +11,7 @@ repos:
       - id: check-merge-conflict
       - id: check-symlinks
       - id: check-yaml
+      - id: detect-private-key
 
   # ------------------------------
   # ShellCheck for bash scripts
@@ -33,3 +34,9 @@ repos:
         name: shfmt (format bash scripts)
         args: ["-i", "2", "-ci"] # 2 spaces indent, indentation correction
         files: ^(cmd/|lib/|scripts/).+\.sh$
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0   # pick a current tag
+    hooks:
+      - id: gitleaks
+        args: ["protect", "--staged", "--redact"]
