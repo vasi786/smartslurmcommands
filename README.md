@@ -8,7 +8,7 @@ I would like to minimize the operations to cancel the latest job which I submitt
 for these use cases. Thus, I took myself the challenge (fed it to GPT mostly) and wrote this simple wrapper commands on top of native slurm commands which are used by
 daily user to make things smarter and efficient in world of a HPC user.
 
-## mqpwd (my-squeue-pwd)
+## [mqpwd](./docs/subcommands/mqpwd.md) (my-squeue-pwd)
 This command gets the jobs which are related to the current directory which you are in (if no args are passed).
 If you pass a path, then the command will fetch the jobs relating to that working directory.
 ```
@@ -23,7 +23,7 @@ If you pass a path, then the command will fetch the jobs relating to that workin
  15858562      genoa  20_pq_with_Lys_AR1                    user  R  3-04:23:14 [1-19:36:46]  100G   384 - 2     tcn[743-744]
 ```
 
-## smartcancel (smart wrapper around scancel)
+## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
 This is the command I wanted during my PhD. The biggest use case is to detect the jobs which are associated with the current working directory (I am in) and
 use that to fetch the jobs to cancel.
 
