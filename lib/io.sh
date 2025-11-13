@@ -14,4 +14,3 @@ command -v confirm >/dev/null 2>&1 || confirm() {
 }
 command -v log_info >/dev/null 2>&1 || log_info(){ printf 'info: %s\n' "$*" >&2; }
 command -v log_warn >/dev/null 2>&1 || log_warn(){ printf 'warn: %s\n' "$*" >&2; }
-
