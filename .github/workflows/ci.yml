@@ -36,4 +36,3 @@ jobs:
       - name: Run tests (bats, recursive)
         run: |
           bats -r tests
-
