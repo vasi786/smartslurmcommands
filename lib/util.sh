@@ -154,3 +154,6 @@ util::apply_dir_filter_with_fallback() {
   | awk 'NF' \
   | awk '!seen[$0]++'
 }
+util::version() {
+    cat "$SSC_HOME/VERSION"
+}
