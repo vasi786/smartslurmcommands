@@ -11,7 +11,6 @@ daily user to make things smarter and efficient in world of a HPC user.
 ## mqpwd (my-squeue-pwd)
 This command gets the jobs which are related to the current directory which you are in (if no args are passed).
 If you pass a path, then the command will fetch the jobs relating to that working directory.
-
 ```
 [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd
     JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
@@ -22,6 +21,5 @@ If you pass a path, then the command will fetch the jobs relating to that workin
     JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
  15858563      genoa  20_pq_with_Lys_AR1                    ponck1 PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
  15858562      genoa  20_pq_with_Lys_AR1                    ponck1  R  3-04:23:14 [1-19:36:46]  100G   384 - 2     tcn[743-744]
-[ponck1@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$
 ```
 
