@@ -1,8 +1,10 @@
 # smartcancel
+This command with a filters (see below) will cancel a job. Before cancelling a final confirm question with (yes/no) will be asked to confirm the cancellation of the job.
+If no filters are passed, the command will exit with a warning.
 
 ## Usage
 
-Usage: smartcancel [FILTERS] [BEHAVIOR]
+Usage: smartcancel [FILTERS] [BEHAVIOR (optional)]
 
 ## Filters
 
@@ -51,7 +53,7 @@ Only jobs in these Slurm partitions.
 - `--latest`
 Pick only the latest matching job (by StartTime or JobID).
 
-## Behavior
+## Behavior (optional)
 
 - `--dry-run`
 Show what would be cancelled.
