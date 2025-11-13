@@ -1,4 +1,4 @@
-#SMARTSLURMCOMMANDS (SSC)
+# SMARTSLURMCOMMANDS (SSC)
 
 After four and half years of PhD in computational biophysics (currently a postdoc), with a lot of usage on HPC, the biggest issue I faced is the
 effort to cancel jobs. For example, I submit a simulation, and realized that I have missed a parameter and want to cancel that
