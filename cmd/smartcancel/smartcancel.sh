@@ -37,6 +37,7 @@ Behavior:
   --dry-run                  Show what would be cancelled
   --force                      Do not prompt
   -h, --help                 Show this help
+  --version                  Shows the version of smartslurmcommands
 EOF
 }
 
@@ -91,6 +92,7 @@ while [[ $# -gt 0 ]]; do
     --dry-run) DRY=true; shift ;;
     --force) FORCE=true; shift ;;
     -h|--help) usage; exit 0 ;;
+    --version) util::version; exit 0 ;;
     *) die 2 "Unknown argument: $1 (see --help)";;
   esac
 done
