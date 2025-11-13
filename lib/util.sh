@@ -113,7 +113,8 @@ util::filter_candidates_by_partition() {
   [[ -n "$parts" ]] || { cat; return 0; }
 
   # Convert comma-separated list → regex (e.g., genoa,rome → ^(genoa|rome)$)
-  local part_re="^($(printf '%s' "$parts" | sed 's/,/|/g'))$"
+  local part_re
+  part_re="^($(printf '%s' "$parts" | sed 's/,/|/g'))$"
 
   awk -F'|' -v re="$part_re" '
     {

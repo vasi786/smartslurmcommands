@@ -105,4 +105,3 @@ slurm::squeue_by_job_names() {
 slurm::job_ids_by_job_names() {
   slurm::squeue_by_job_names "$(current_user)" "$@" | cut -d'|' -f1 | sed '/^$/d' | sort -u
 }
-
