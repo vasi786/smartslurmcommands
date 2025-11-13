@@ -28,6 +28,7 @@ This is the command I wanted during my PhD. The biggest use case is to detect th
 use that to fetch the jobs to cancel.
 
 `--this-dir` flag to the `smartcancel` will fetch the jobs related to the current working directory.
+
 `--latest` flag to the `smartcancel` will fetch the latest job in the squeue.
 
 many other flags for the smartcancel are explained in detail here [].
