@@ -48,4 +48,3 @@ cfg::get() {
   local key="$1" def="${2:-}"
   [[ -n "${__CFG[$key]+x}" ]] && printf '%s\n' "${__CFG[$key]}" || printf '%s\n' "$def"
 }
-
