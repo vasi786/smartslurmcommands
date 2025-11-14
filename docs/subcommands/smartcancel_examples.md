@@ -22,4 +22,5 @@ To list all your current Slurm jobs, execute:
   15819552      genoa  Q44_c2_3_restart1                     user  R  2-02:49:29 [2-21:10:31]  100G   384 - 2     tcn[1099-1100]
   15819484      genoa  Q44_c2_2_restart1                     user  R  2-02:54:03 [2-21:05:57]  100G   384 - 2     tcn[558,1179]
   15819331      genoa  Q44_c2_1_restart1                     user  R  2-02:58:06 [2-21:01:54]  100G   384 - 2     tcn[1024-1025]
-</details>```
+  ```
+</details>
