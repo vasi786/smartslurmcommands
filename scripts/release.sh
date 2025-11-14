@@ -49,7 +49,7 @@ if [[ "$ans" =~ ^[Yy]$ ]]; then
   git tag "v$new"
   echo "Created tag v$new"
   echo "You can now push:"
-  echo "  git push origin main --tags"
+  echo "  git push origin v$new"
 else
   echo "Not committing/tagging. VERSION changed locally."
 fi
