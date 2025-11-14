@@ -1,0 +1,4 @@
+.gitignore          export-ignore
+.github/            export-ignore
+.git/               export-ignore
+tests/coverage/     export-ignore
