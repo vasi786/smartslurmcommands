@@ -66,3 +66,5 @@ Do not prompt the `confirm (yes/no)` statement before cancelling the job.
 
 - `-h`, `--help`
 Show all these flags on the terminal.
+
+See the detailed command examples here: [Examples](smartcancel_examples.md).
