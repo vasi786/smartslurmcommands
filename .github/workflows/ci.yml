@@ -78,11 +78,16 @@ jobs:
       - name: Build release archive
         run: |
           ver="${{ steps.version.outputs.version }}"
-          tar --warning=no-file-changed -czf "smartslurmcommands-${ver}.tar.gz" \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude 'tests/coverage' \
-            .
+          # tar --warning=no-file-changed -czf "smartslurmcommands-${ver}.tar.gz" \
+          #   --exclude '.git' \
+          #   --exclude '.github' \
+          #   --exclude 'tests/coverage' \
+          #   .
+          # Create a tar.gz of the tracked files at this tag/commit
+          git archive \
+            --format=tar.gz \
+            --output="smartslurmcommands-${ver}.tar.gz" \
+            "$GITHUB_SHA"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
