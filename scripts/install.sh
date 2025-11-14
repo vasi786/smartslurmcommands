@@ -75,7 +75,7 @@ if [[ -d "$SHARE_DIR" ]]; then
   rm -rf "$SHARE_DIR"
 fi
 mkdir -p "$SHARE_DIR"
-for d in lib cmd etc completions man docs; do
+for d in lib cmd etc completions man docs VERSION; do
   [[ -d "$ROOT/$d" ]] && cp -R "$ROOT/$d" "$SHARE_DIR/"
 done
 
