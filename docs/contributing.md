@@ -1,7 +1,7 @@
 # Contributing Guide
 
 Thank you for your interest in contributing to smartslurmcommands!
-This guide explains the project structure, coding style, testing requirements, and the release workflow so you can contribute confidently.
+This guide explains the project structure, coding style, and testing requirements to contribute.
 
 ## 1. Repository structure
 ```
@@ -57,7 +57,7 @@ avoid duplicating logic when util/slurm already provides helper functions.
 
 ### Shell Style
 
-We follow:
+I am following:
 
 - POSIX-ish Bash, but Bash-only features allowed (mapfile, arrays, [[ ]])
 - `set -Eeuo pipefail` always at top
@@ -72,9 +72,9 @@ core::baz
 
 ### 5. Testing
 
-Test Framework: bats-core
+Test Framework: `bats-core`
 
-All automated tests use bats. We divide tests as:
+All automated tests use bats. I have divide tests as:
 
 - Unit tests (tests/unit/)
   These test pure functions:
@@ -93,11 +93,11 @@ All automated tests use bats. We divide tests as:
 
 - Mock Slurm
 
-  We simulate Slurm using:
+  I have simulated Slurm using:
   ```
-  tests/helpers/slurm_mocks/squeue
+  tests/helpers/slurm_mocks/squeue (not implemented yet)
   tests/helpers/slurm_mocks/scancel
-  tests/helpers/slurm_mocks/sbatch
+  tests/helpers/slurm_mocks/sbatch (not implemented yet)
   ```
   `mock_slurm_path` prepends them to PATH.
 
