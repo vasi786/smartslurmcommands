@@ -128,7 +128,7 @@ fi
 
 # Name filters
 if [[ -n "$NAME_EQ" ]]; then
-  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_value 2 "$NAME_EQ")"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_values 2 "$NAME_EQ")"
 fi
 if [[ -n "$NAME_CONTAINS" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "$NAME_CONTAINS")"
