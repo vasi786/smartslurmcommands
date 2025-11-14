@@ -49,6 +49,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: unit_test               # <-- require tests to pass first
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -93,7 +95,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
-          name: smartslurmcommands v{{ steps.version.outputs.version }}
+          name: smartslurmcommands v${{ steps.version.outputs.version }}
           body: |
             smartslurmcommands v${{ steps.version.outputs.version }}
 
