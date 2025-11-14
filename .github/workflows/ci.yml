@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [ "**" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "**" ]
 
@@ -12,6 +13,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Read VERSION
+        id: version
+        run: echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Show version
+        run: echo "Project version is ${{ steps.version.outputs.version }}"
 
       - name: List repo (debug)
         run: |
@@ -36,3 +44,58 @@ jobs:
       - name: Run tests (bats, recursive)
         run: |
           bats -r tests
+  release:
+    # Only run this job when a tag starting with "v" is pushed
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test               # <-- require tests to pass first
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read VERSION file
+        id: version
+        run: echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Derive tag version from ref
+        id: tag
+        run: |
+          tag="${GITHUB_REF_NAME#v}"    # GITHUB_REF_NAME is e.g. "v0.2.0"
+          echo "tag_version=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Check that tag matches VERSION
+        run: |
+          file_ver="${{ steps.version.outputs.version }}"
+          tag_ver="${{ steps.tag.outputs.tag_version }}"
+          echo "VERSION file: $file_ver"
+          echo "Tag version : $tag_ver"
+          if [ "$file_ver" != "$tag_ver" ]; then
+            echo "ERROR: VERSION ($file_ver) does not match tag ($tag_ver)" >&2
+            exit 1
+          fi
+
+      - name: Build release archive
+        run: |
+          ver="${{ steps.version.outputs.version }}"
+          tar czf "smartslurmcommands-${ver}.tar.gz" \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'tests/coverage' \
+            .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: smartslurmcommands v{{ steps.version.outputs.version }}
+          body: |
+            smartslurmcommands v${{ steps.version.outputs.version }}
+
+            See CHANGELOG.md for details.
+          draft: false
+          prerelease: false
+          files: |
+            smartslurmcommands-${{ steps.version.outputs.version }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
