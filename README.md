@@ -23,8 +23,8 @@ If you pass a path, then the command will fetch the jobs relating to the supplie
     JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
  15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
  15858562      genoa  20_pq_with_Lys_AR1                    user  R  3-04:23:14 [1-19:36:46]  100G   384 - 2     tcn[743-744]
+```
 </details>
-  ```
 
 ## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
 This is the command I wanted during my PhD.
@@ -54,8 +54,8 @@ If my queue is as below:
  15819552      genoa  Q44_c2_3_restart1                     user  R    23:39:53 [4-00:20:07]  100G   384 - 2     tcn[1099-1100]
  15819484      genoa  Q44_c2_2_restart1                     user  R    23:44:27 [4-00:15:33]  100G   384 - 2     tcn[558,1179]
  15819331      genoa  Q44_c2_1_restart1                     user  R    23:48:30 [4-00:11:30]  100G   384 - 2     tcn[1024-1025]
-</details>
 ```
+</details>
 
 To find the job related to the current working directory and cancel it.
 <details>
@@ -71,8 +71,8 @@ JobID        JobName              State      Reason                    WorkDir
 Dry-run (no changes):
 scancel 15858313
 scancel 15858314
-</details>
 ```
+</details>
 
 To find the job related to a different directory and cancel it.
 <details>
@@ -88,8 +88,8 @@ JobID        JobName              State      Reason                    WorkDir
 Dry-run (no changes):
 scancel 15858562
 scancel 15858563
-</details>
 ```
+</details>
 
 To find the latest job in the squeue and cancel it.
 <details>
@@ -103,8 +103,8 @@ JobID        JobName              State      Reason                    WorkDir
 
 Dry-run (no changes):
 scancel 15819623
-</details>
 ```
+</details>
 
 ## smartqueue
 The same flags can be passed to squeue, which makes it easier to filter jobs which are relevant.
