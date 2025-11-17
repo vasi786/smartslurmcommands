@@ -23,8 +23,7 @@ If you pass a path, then the command will fetch the jobs relating to the supplie
     JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
  15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
  15858562      genoa  20_pq_with_Lys_AR1                    user  R  3-04:23:14 [1-19:36:46]  100G   384 - 2     tcn[743-744]
-  ```
-</details>
+</details>```
 
 ## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
 This is the command I wanted during my PhD.
@@ -38,7 +37,7 @@ The biggest use case is to detect the jobs which are associated with the current
 
 Many other flags are designed and are explained in detail [smartcancel](./docs/subcommands/smartcancel.md).
 
-### examples
+### Examples
 If my queue is as below:
 <details>
 <summary>Example output of `mq`</summary>
