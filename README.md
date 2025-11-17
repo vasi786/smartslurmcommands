@@ -13,7 +13,7 @@ If you pass a path, then the command will fetch the jobs relating to the supplie
 
 <details>
 <summary>
-<table><tr><td bgcolor="#f0f0f0"><strong>Example output of <code>mqpwd</code></strong></td></tr></table>
+<table><tr><td bgcolor="#d8eaff"><strong>Example output of <code>mqpwd</code></strong></td></tr></table>
 </summary>
 
 ```bash
@@ -29,20 +29,20 @@ If you pass a path, then the command will fetch the jobs relating to the supplie
 </details> ```
 
 
-<details>
-<summary>Example output of <code>mqpwd</code></summary>
-
-```bash
-[user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd
-    JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
- 15858314      genoa  20_pq_with_Lys_CR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
- 15858313      genoa  20_pq_with_Lys_CR1                    user  R  3-05:08:38 [1-18:51:22]  100G   384 - 2     tcn[549,594]
-
-[user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd ../20_pq_amberR1_bigger_box_20nm_with_Lysines/
-    JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
- 15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
- 15858562      genoa  20_pq_with_Lys_AR1                    user  R  3-04:23:14 [1-19:36:46]  100G   384 - 2     tcn[743-744]
-</details>```
+<!-- <details> -->
+<!-- <summary>Example output of <code>mqpwd</code></summary> -->
+<!---->
+<!-- ```bash -->
+<!-- [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd -->
+<!--     JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON) -->
+<!--  15858314      genoa  20_pq_with_Lys_CR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency) -->
+<!--  15858313      genoa  20_pq_with_Lys_CR1                    user  R  3-05:08:38 [1-18:51:22]  100G   384 - 2     tcn[549,594] -->
+<!---->
+<!-- [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd ../20_pq_amberR1_bigger_box_20nm_with_Lysines/ -->
+<!--     JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON) -->
+<!--  15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency) -->
+<!--  15858562      genoa  20_pq_with_Lys_AR1                    user  R  3-04:23:14 [1-19:36:46]  100G   384 - 2     tcn[743-744] -->
+<!-- </details>``` -->
 
 ## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
 This is the command I wanted during my PhD.
