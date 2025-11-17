@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-# mqpwd — list jobs associated with sbatch scripts OR working directory
-# Usage:
-#   mqpwd            # uses $PWD
-#   mqpwd /path/to/dir
+# mqpwd — list jobs associated with sbatch scripts OR working directory with filters
 set -Eeuo pipefail
 IFS=$'\n\t'
 
@@ -20,10 +17,17 @@ Usage:
       List jobs whose SBATCH --job-name appears in *.sh inside the current
       directory, or whose WorkDir matches the current path.
 
-  mqpwd PATH
-      Same as above but using PATH instead of $PWD.
+  Filters (combine as needed):
+    --dir PATH                 show jobs whose WorkDir == PATH (fallback: name == basename(PATH))
+    --name NAME                Exact job name match
+    --contains SUBSTR          Job name contains substring
+    --older-than DUR           Only jobs with elapsed time > DUR (e.g., 10m, 2h)
+    --state STATE              Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
+    --partition NAME[,NAME...]   Only jobs in these Slurm partitions
+    --latest                   Pick only the latest matching job (by StartTime or JobID)
 
 Behavior:
+  -h, --help                 Show this help
   • If the directory contains *.sh scripts with "#SBATCH --job-name", those
     job names are extracted and used to filter squeue output.
 
@@ -35,8 +39,8 @@ Output:
 
 Examples:
   mqpwd
-  mqpwd ~/projects/my_sim
-  mqpwd /scratch/work/pex13/simR2
+  mqpwd --dir ~/projects/my_sim
+  mqpwd --dir /scratch/work/pex13/simR2
 
 Notes:
   This command NEVER cancels any job — it is read-only and safe.
@@ -44,45 +48,95 @@ Notes:
 EOF
 }
 
-# Accept 0 or 1 argument (directory), or --help
-if [[ $# -gt 1 ]]; then
-  echo "mqpwd: at most one PATH argument is allowed" >&2
-  exit 2
-fi
+DIR_FILTER="$(pwd)"
+NAME_EQ=""
+NAME_CONTAINS=""
+OLDER_THAN=""
+STATE_FILTER=""
+PARTITION_FILTER=""
+LATEST=false
 
-case "${1:-}" in
-  -h|--help)
-    usage
-    exit 0
-    ;;
-esac
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dir) DIR_FILTER="$2"; shift 2 ;;
+    --name) NAME_EQ="$2"; shift 2 ;;
+    --contains) NAME_CONTAINS="$2"; shift 2 ;;
+    --older-than) OLDER_THAN="$2"; shift 2 ;;
+    --latest) LATEST=true; shift ;;
+    --state)
+      val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2
+      case "$val" in
+        dependency|dep|deps)
+          STATE_FILTER="PENDING"
+          REASON_FILTER="Dependency"
+          ;;
+        pending|running|suspended|completed|cancelled|failed|timeout|node_fail|preempted|boot_fail|deadline|out_of_memory|completing|configuring|resizing|resv_del_hold|requeued|requeue_fed|requeue_hold|revoked|signaling|special_exit|stage_out|stopped)
+          STATE_FILTER="$(tr '[:lower:]' '[:upper:]' <<<"$val")"
+          ;;
+        *)
+          die 2 "Unknown state: $val"
+          ;;
+      esac
+      ;;
+    --partition) PARTITION_FILTER="$2"; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    --version) util::version; exit 0 ;;
+    *) die 2 "Unknown argument: $1 (see --help)";;
+  esac
+done
 
-dir="${1:-$PWD}"
-[[ -d "$dir" ]] || die 2 "Directory not found: $dir"
+[[ -d "$DIR_FILTER" ]] || die 2 "Directory not found: $dir"
 
 # Resolve absolute, physical path (keeps tests & matching consistent)
 if command -v realpath >/dev/null 2>&1; then
-  absdir="$(realpath "$dir")"
+  absdir="$(realpath "$DIR_FILTER")"
 else
-  absdir="$(cd "$dir" && pwd -P)"
+  absdir="$(cd "$DIR_FILTER" && pwd -P)"
 fi
 
 # Build a cache of this user’s jobs in our pipe format:
 # %i|%j|%T|%Z|%M|%S|%R|%P  → id|name|state|workdir|elapsed|start|reason|partition
 # The below directive is issued as calling the squeue_lines function without any arguments is intentional (goes to default --> all jobs and current user)
 # shellcheck disable=SC2119
-SQUEUE_CACHE="$(slurm::squeue_lines)"   # make sure this outputs the 8 fields above
+SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
+
 
 # Filter by names from *.sh in dir OR by WorkDir==absdir (union, dedup)
-filtered="$(printf '%s\n' "$SQUEUE_CACHE" | util::apply_dir_filter_with_fallback "$absdir")"
+CANDIDATES="$(printf '%s\n' "$SQUEUE_CACHE" | util::apply_dir_filter_with_fallback "$absdir")"
 
-if [[ -z "$filtered" ]]; then
+if [[ -z "$CANDIDATES" ]]; then
   echo "No jobs found related to: $absdir"
   exit 0
 fi
 
+if [[ -n "$NAME_EQ" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_values 2 "$NAME_EQ")"
+fi
+if [[ -n "$NAME_CONTAINS" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "$NAME_CONTAINS")"
+fi
+if [[ -n "$PARTITION_FILTER" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_partition "$PARTITION_FILTER")"
+fi
+if [[ -n "$OLDER_THAN" ]]; then
+  filtered=""
+  while IFS='|' read -r jid jname state wdir elapsed start; do
+    [[ -z "$jid" ]] && continue
+    if util::older_than "$elapsed" "$OLDER_THAN"; then
+      filtered+="$jid|$jname|$state|$wdir|$elapsed|$start"$'\n'
+    fi
+  done <<< "$CANDIDATES"
+  CANDIDATES="$filtered"
+fi
+# Latest only
+if $LATEST; then
+  CANDIDATES="$(slurm::pick_latest_line <<<"$CANDIDATES")"
+fi
+if [[ -n "$REASON_FILTER" ]]; then
+  CANDIDATES="$(awk -F'|' -v r="$REASON_FILTER" '$7 ~ r' <<<"$CANDIDATES")"
+fi
 # Extract job IDs and print like your `mq` alias
-csv_ids="$(cut -d'|' -f1 <<<"$filtered" | sed '/^$/d' | paste -sd, -)"
+csv_ids="$(cut -d'|' -f1 <<<"$CANDIDATES" | sed '/^$/d' | paste -sd, -)"
 if [[ -z "$csv_ids" ]]; then
   echo "No job IDs found after filtering for: $absdir"
   exit 0
