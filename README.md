@@ -40,10 +40,7 @@ Many other flags are designed and are explained in detail [smartcancel](./docs/s
 
 ### Examples
 - If my queue is as below:
-  <details>
-  <summary>Example output of <code>mq</code></summary>
-
-  ```bash
+  ```
   [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mq
       JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
    15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
@@ -55,7 +52,6 @@ Many other flags are designed and are explained in detail [smartcancel](./docs/s
    15819484      genoa  Q44_c2_2_restart1                     user  R    23:44:27 [4-00:15:33]  100G   384 - 2     tcn[558,1179]
    15819331      genoa  Q44_c2_1_restart1                     user  R    23:48:30 [4-00:11:30]  100G   384 - 2     tcn[1024-1025]
   ```
-  </details>
 
 - To find the job related to the current working directory and cancel it.
   <details>
