@@ -50,7 +50,6 @@ mkdir -p "$BIN_DIR" "$SHARE_DIR" "$MAN_DIR" "$USER_CONFIG_DIR"
 # ---------- Create config file --------------
 if [[ ! -f "$USER_CONFIG_FILE" ]]; then
   cp "${ROOT}"/config "$USER_CONFIG_FILE"
-EOF
   echo "==>  Created $USER_CONFIG_FILE"
   echo ""
 else
