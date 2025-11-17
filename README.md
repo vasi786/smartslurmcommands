@@ -3,7 +3,7 @@
 After four and half years of PhD in computational biophysics (currently a postdoc), with a lot of usage of HPC, the biggest issue I faced is the effort it takes to cancel jobs.
 For example, I submitted a simulation, and realized that I have missed a parameter and want to cancel that
 job among hundreds of jobs I am running at the same time. Finding this job ID is a challenge, and I always thought of adding my own alias which does this for me smartly.
-You could ask, why not use the job name. In my case the job name is a 32 character random string and I would like to minimize the operations to cancel the latest job which I submitted an hour ago.
+You could ask, why not use the job name. In my case the job name is a 32 character random string sometimes, and I would like to minimize the operations to cancel the latest job which I submitted an hour ago.
 I was surprised that this functionality doesn't exist natively or someone didn't develop a tool for these use cases.
 Thus, I took myself the challenge (fed it to GPT mostly) and wrote this simple wrapper commands on top of native slurm commands which are used by daily user to make things smarter and efficient in the world of a HPC user.
 
@@ -32,15 +32,14 @@ The biggest use case is to detect the jobs which are associated with the current
 
 ### Featured flags
 
-`--this-dir` flag to the `smartcancel` will fetch the jobs related to the current working directory.
+`--this-dir` will fetch the jobs related to the current working directory.
 
-`--latest` flag to the `smartcancel` will fetch the latest job in the squeue.
+`--latest` will fetch the latest job in the squeue.
 
 Many other flags are designed and are explained in detail [smartcancel](./docs/subcommands/smartcancel.md).
 
 ### Examples
 - If my queue is as below:
-  -
   ```
   [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mq
       JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
