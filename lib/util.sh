@@ -2,7 +2,7 @@
 
 # Convert Slurm elapsed (%M) to seconds.
 # Supports: D-HH:MM:SS | HH:MM:SS | MM:SS | "0:00" | "N/A" | "-"
-time::elapsed_to_seconds() {
+util::elapsed_to_seconds() {
   local e="$1"
   [[ -z "$e" || "$e" == "N/A" || "$e" == "-" ]] && { echo 0; return; }
 
@@ -21,7 +21,7 @@ time::elapsed_to_seconds() {
 }
 
 # Return 0 (true) if elapsed > threshold (e.g., 10m, 2h, 3d, 600s)
-time::older_than() {
+util::older_than() {
   local elapsed="$1" thresh="$2"
   local es ts unit num
   es="$(time::elapsed_to_seconds "$elapsed")"
