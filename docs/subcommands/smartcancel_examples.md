@@ -4,10 +4,10 @@ Below are example commands for `mq` and `smartcancel`, each with a short descrip
 
 ---
 
-## 1. List all your Slurm jobs
+### 1. List all your Slurm jobs
 
 To list all your current Slurm jobs, execute:
-`mq`
+`mq` (which is not implemented in the current version)
 <details>
 <summary>Show example output</summary>
 
