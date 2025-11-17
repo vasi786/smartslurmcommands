@@ -40,6 +40,7 @@ Many other flags are designed and are explained in detail [smartcancel](./docs/s
 
 ### Examples
 - If my queue is as below:
+  -
   ```
   [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mq
       JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
