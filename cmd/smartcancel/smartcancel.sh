@@ -147,7 +147,7 @@ if [[ -n "$OLDER_THAN" ]]; then
   filtered=""
   while IFS='|' read -r jid jname state wdir elapsed start; do
     [[ -z "$jid" ]] && continue
-    if time::older_than "$elapsed" "$OLDER_THAN"; then
+    if util::older_than "$elapsed" "$OLDER_THAN"; then
       filtered+="$jid|$jname|$state|$wdir|$elapsed|$start"$'\n'
     fi
   done <<< "$CANDIDATES"
