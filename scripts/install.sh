@@ -49,17 +49,7 @@ mkdir -p "$BIN_DIR" "$SHARE_DIR" "$MAN_DIR" "$USER_CONFIG_DIR"
 
 # ---------- Create config file --------------
 if [[ ! -f "$USER_CONFIG_FILE" ]]; then
-  cat > "$USER_CONFIG_FILE" <<'EOF'
-# smartslurmcommands user config (overrides)
-# Lines are KEY="VALUE" (bash-quoted). This file is never overwritten by install.
-# You can export SSC_KEY env vars to override temporarily (e.g., SSC_SMARTCANCEL_DEFAULT_REASON=...).
-
-# Default reason used by smartcancel when --reason is not passed
-SMARTCANCEL_DEFAULT_REASON="smart"
-
-# Future options:
-# COLOR_MODE="auto"      # auto|always|never (if you enable colors)
-# LOG_LEVEL="info"       # debug|info|warn|error (if you enable logging)
+  cp "${ROOT}"/config "$USER_CONFIG_FILE"
 EOF
   echo "==>  Created $USER_CONFIG_FILE"
   echo ""
