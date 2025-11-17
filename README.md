@@ -39,7 +39,7 @@ The biggest use case is to detect the jobs which are associated with the current
 Many other flags are designed and are explained in detail [smartcancel](./docs/subcommands/smartcancel.md).
 
 ### Examples
-If my queue is as below:
+- If my queue is as below:
 <details>
 <summary>Example output of <code>mq</code></summary>
 
@@ -57,7 +57,7 @@ If my queue is as below:
 ```
 </details>
 
-To find the job related to the current working directory and cancel it.
+- To find the job related to the current working directory and cancel it.
 <details>
 <summary>Example output of <code>smartcancel --this-dir</code></summary>
 
@@ -74,7 +74,7 @@ scancel 15858314
 ```
 </details>
 
-To find the job related to a different directory and cancel it.
+- To find the job related to a different directory and cancel it.
 <details>
 <summary>Example output of <code>smartcancel --this-dir</code></summary>
 
@@ -91,7 +91,7 @@ scancel 15858563
 ```
 </details>
 
-To find the latest job in the squeue and cancel it.
+- To find the latest job in the squeue and cancel it.
 <details>
 <summary>Example output of <code>smartcancel --this-dir</code></summary>
 
