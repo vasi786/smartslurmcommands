@@ -156,7 +156,7 @@ fi
 
 # Latest only
 if $LATEST; then
-  CANDIDATES="$(slurm::pick_latest_line <<<"$CANDIDATES")"
+  CANDIDATES="$(util::pick_latest_line <<<"$CANDIDATES")"
 fi
 
 if [[ -n "$REASON_FILTER" ]]; then
