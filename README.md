@@ -11,7 +11,7 @@ Thus, I took myself the challenge (fed it to GPT mostly) and wrote this simple w
 This command gets the jobs which are related to the current directory which you are in (if no args are passed).
 If you pass a path, then the command will fetch the jobs relating to the supplied path.
 <details>
-<summary>Example output of `mqpwd`</summary>
+<summary>Example output of <code>mqpwd</code></summary>
 
 ```bash
 [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd
