@@ -10,22 +10,6 @@ slurm::squeue_lines() {
   squeue "${args[@]}"
 }
 
-# Pick the "latest" line by StartTime (field 6), fallback to highest JobID
-slurm::pick_latest_line() {
-  awk -F'|' '
-    BEGIN { bestid=0; bestS=""; have=0 }
-    {
-      id=$1; S=$6;
-      if (S ~ /[0-9]/) {
-        if (!have || S > bestS) { bestS=S; bestid=id; best=$0; have=1 }
-      } else {
-        if (!have || id+0 > bestid+0) { bestid=id; best=$0; have=1 }
-      }
-    }
-    END { if (have) print best }
-  '
-}
-
 # Collect jobs that depend on any of the target IDs (reverse dependency walk).
 # Args:
 #   $1 = squeue cache lines "JobID|JobName|State|WorkDir|Elapsed|StartTime"

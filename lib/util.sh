@@ -47,6 +47,22 @@ util::older_than() {
 # current_user helper (unchanged)
 current_user() { id -un 2>/dev/null || echo "${USER:-unknown}"; }
 
+# Pick the "latest" line by StartTime (field 6), fallback to highest JobID
+util::pick_latest_line() {
+  awk -F'|' '
+    BEGIN { bestid=0; bestS=""; have=0 }
+    {
+      id=$1; S=$6;
+      if (S ~ /[0-9]/) {
+        if (!have || S > bestS) { bestS=S; bestid=id; best=$0; have=1 }
+      } else {
+        if (!have || id+0 > bestid+0) { bestid=id; best=$0; have=1 }
+      }
+    }
+    END { if (have) print best }
+  '
+}
+
 # Generic: keep rows whose field f matches any value from the first input.
 # Usage:
 #   printf '%s\n' a b | util::filter_candidates_by_field_values 2 <<<"1|a|X"$'\n'"2|c|Y"
