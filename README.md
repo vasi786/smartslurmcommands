@@ -41,7 +41,7 @@ Many other flags are designed and are explained in detail [smartcancel](./docs/s
 ### Examples
 If my queue is as below:
 <details>
-<summary>Example output of <code>mq<code></summary>
+<summary>Example output of <code>mq</code></summary>
 
 ```bash
 [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mq
@@ -59,7 +59,7 @@ If my queue is as below:
 
 To find the job related to the current working directory and cancel it.
 <details>
-<summary>Example output of <code>smartcancel --this-dir<code></summary>
+<summary>Example output of <code>smartcancel --this-dir</code></summary>
 
 ```bash
 [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ smartcancel --this-dir --dry-run
@@ -76,7 +76,7 @@ scancel 15858314
 
 To find the job related to a different directory and cancel it.
 <details>
-<summary>Example output of <code>smartcancel --this-dir<code></summary>
+<summary>Example output of <code>smartcancel --this-dir</code></summary>
 
 ```bash
 [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ smartcancel --dir ../20_pq_amberR1_bigger_box_20nm_with_Lysines/ --dry-run
@@ -93,7 +93,7 @@ scancel 15858563
 
 To find the latest job in the squeue and cancel it.
 <details>
-<summary>Example output of <code>smartcancel --this-dir<code></summary>
+<summary>Example output of <code>smartcancel --this-dir</code></summary>
 
 ```bash
 [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ smartcancel --latest --dry-run
