@@ -69,6 +69,7 @@ util::foo
 slurm::bar
 core::baz
 ```
+- While writing the documentation, I am following one sentence per line convention, which is easy for looking at diffs on github.
 
 ### 5. Testing
 
