@@ -64,9 +64,12 @@ if [[ -d "$SHARE_DIR" ]]; then
   rm -rf "$SHARE_DIR"
 fi
 mkdir -p "$SHARE_DIR"
-for d in lib cmd etc completions man docs VERSION; do
+for d in lib cmd etc completions man docs; do
   [[ -d "$ROOT/$d" ]] && cp -R "$ROOT/$d" "$SHARE_DIR/"
 done
+
+# copy the VERSION info to the .local/share/smartslurmcommands
+cp "$ROOT"/VERSION "$SHARE_DIR"
 
 # Also copy man pages into per-user man dir for 'man' to find
 if [[ -d "$ROOT/man" ]]; then
