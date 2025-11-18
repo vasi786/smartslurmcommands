@@ -28,15 +28,17 @@ If you pass a path, then the command will fetch the jobs relating to the supplie
 
 ## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
 This is the command I wanted during my PhD.
-The biggest use case is to detect the jobs which are associated with the current working directory (I am in) and use that to fetch the jobs and cancel them.
+The biggest use case for me was to detect the jobs which are associated with the current working directory (I am in) and use that to fetch the jobs and cancel them.
 
 ### Featured flags
 
-`--this-dir` will fetch the jobs related to the current working directory.
+- `--this-dir` will fetch the jobs related to the current working directory.
+- `--latest` will fetch the latest job in the squeue.
+- `--older-than DUR` will fetch the jobs with elapsed time > `DUR` (e.g. `10m`, `2h`).
+- `--contains SUBSTR` will fetch the job names containing the specified substring (no wildcards allowed).
+- `somecommand | smartcancel --contains-from-stdin` will fetch the job names containing the specified substrings passed through stdin (no wildcards allowed).
 
-`--latest` will fetch the latest job in the squeue.
-
-Many other flags are designed and are explained in detail [smartcancel](./docs/subcommands/smartcancel.md).
+Many other flags were implemented and are explained in detail [smartcancel](./docs/subcommands/smartcancel.md).
 If you prefer directly looking at the examples [smartcancel-examples](./docs/subcommands/smartcancel_examples.md).
 
 ### Examples
