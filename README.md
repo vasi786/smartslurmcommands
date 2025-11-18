@@ -1,6 +1,6 @@
 <!-- # smartslurmcommands (ssc) -->
 
-![image](./images/test.png)
+![image](./images/github_banner.png)
 
 After four and half years of PhD in computational biophysics (currently a postdoc), with a lot of usage of HPC, the biggest issue I faced is the effort it takes to cancel jobs.
 For example, I submitted a simulation, and realized that I have missed a parameter and want to cancel that

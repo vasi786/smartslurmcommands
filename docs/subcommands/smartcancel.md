@@ -8,66 +8,52 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 
 ## Filters
 
-You may combine multiple filters.
+### Directory-based Filters
 
-### Directory-based filters
+| Flag | Description | Notes |
+|------|-------------|-------|
+| `--this-dir` | Cancel jobs whose `WorkDir == $PWD`. Also scans `.sh` files in the directory for `--job-name` flags and uses those job names as filters. | Final match set is the **union** of both criteria (duplicates removed). |
+| `--dir PATH` | Cancel jobs whose `WorkDir == PATH`. Also scans `.sh` files in the directory for `--job-name` flags and uses those job names as filters. | Final match set is the **union** of both criteria (duplicates removed). |
 
-- `--this-dir`
-  Cancel jobs whose `WorkDir == $PWD`.
-  Additionally, if any `.sh` file in the directory was found with a `--job-name` flag, that job name is also used as a filter.
-  The final match set is the **union** of both criteria (with duplicates removed).
+### Name-based Filters
 
-- `--dir PATH`
-  Cancel jobs whose `WorkDir == PATH`
-  Additionally, if any `.sh` file in the directory was found with a `--job-name` flag, that job name is also used as a filter.
-  The final match set is the **union** of both criteria (with duplicates removed).
+| Flag | Description | Notes |
+|------|-------------|-------|
+| `--name NAME` | Exact job name match. | — |
+| `--contains SUBSTR` | Match jobs whose name contains `SUBSTR`. | No wildcards allowed. |
+| `--contains-from-stdin` | Accept name patterns from STDIN. | See examples section. |
 
-### Name-based filters
+### Duration & State Filters
 
-- `--name NAME`
-  Exact job name match.
+| Flag | Description | Notes |
+|------|-------------|-------|
+| `--older-than DUR` | Only jobs with elapsed time > `DUR` (e.g. `10m`, `2h`). | — |
+| `--state STATE` | Only jobs in this Slurm state (case-insensitive). Dependency "reason" from `squeue` is also treated as a state. | Examples: `RUNNING`, `PENDING`, `DEPENDENCY`.<br>Job reasons: see Slurm docs. |
 
-- `--contains SUBSTR`
-  Job name contains substring (no wildcards allowed).
+### Partition Filter
 
-- `--contains-from-stdin`
-  Accept patterns from stdin.
-  See examples section for details.
+| Flag | Description | Notes |
+|------|-------------|-------|
+| `--partition NAME[,NAME...]` | Match only jobs running on the given node partitions. | — |
 
+### Latest-job Filter
 
-### Duration & state filters
-
-- `--older-than DUR`
-Only jobs with elapsed time > `DUR` (e.g. `10m`, `2h`).
-
-- `--state STATE`
-Only jobs in this Slurm state (case-insensitive) will be filtered.
-Dependency which is a `reason` in the `squeue` output is also considered as a state.
-Examples: `RUNNING`, `PENDING`, `DEPENDENCY`.
-
-Job reason codes can be found here - https://slurm.schedmd.com/job_reason_codes.html
-
-### Partition filter
-
-- `--partition NAME[,NAME...]`
-Only jobs which on these node partitions will be filtered.
-
-### Latest-job filter
-
-- `--latest`
-Pick only the latest matching job (by StartTime or JobID).
+| Flag | Description | Notes |
+|------|-------------|-------|
+| `--latest` | Select only the latest matching job (by StartTime or JobID). | — |
 
 ## Behavior (optional)
 
-- `--dry-run`
-Show what would be cancelled.
+| Flag | Description | Notes |
+|------|-------------|-------|
+| `--dry-run` | Show which jobs *would* be cancelled. | No actual cancellation performed. |
+| `--force` | Skip confirmation prompt (`confirm (yes/no)`). | — |
 
-- `--force`
-Do not prompt the `confirm (yes/no)` statement before cancelling the job.
+## Additional
 
-### Additional
+| Flag | Description | Notes |
+|------|-------------|-------|
+| `-h`, `--help` | Show all flags on the terminal. | — |
 
-- `-h`, `--help`
-Show all these flags on the terminal.
 
 See the detailed command examples here: [Examples](smartcancel_examples.md).
