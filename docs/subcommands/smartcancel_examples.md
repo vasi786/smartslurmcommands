@@ -140,6 +140,7 @@ Below are example commands for `smartcancel`, each with a short description and 
   ```
   </details>
 - `printf "ALL YOUR KEYWORDS SEPARATED BY A NEW LINE" | smartcancel --contains-from-stdin` - if you want to cancel all jobs using multiple keywords which are supplied through stdin.
+
   The keywords should be separated by a new line, even the last keyword should be preceded by a new line.
   <details>
   <summary>example 1</summary>
@@ -180,7 +181,8 @@ Below are example commands for `smartcancel`, each with a short description and 
   scancel  15858314
   ```
   </details>
-- `smartcancel --state STATE/REASON` -  if you want to cancel the jobs based on which state they are in, or what reason they have in the `squeue` output:
+- `smartcancel --state STATE/REASON` -  if you want to cancel the jobs based on which state they are in, or what reason they have in the `squeue` output.
+
   As this flag accepts STATE/REASON, you can pass RUNNING or DEPENDENCY as arguments to the flag, which will be used to sorting the jobs.
   <details>
   <summary>example 1</summary>

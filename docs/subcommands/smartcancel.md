@@ -4,7 +4,7 @@ If no filters are passed, the command will exit with a warning.
 
 ## Usage
 
-Usage: smartcancel [FILTERS] [BEHAVIOR (optional)]
+smartcancel [FILTERS] [BEHAVIOR (optional)]
 
 ## Filters
 
@@ -31,7 +31,8 @@ You may combine multiple filters.
   Job name contains substring (no wildcards allowed).
 
 - `--contains-from-stdin`
-  Accept patterns from stdin
+  Accept patterns from stdin.
+  See examples section for details.
 
 
 ### Duration & state filters
