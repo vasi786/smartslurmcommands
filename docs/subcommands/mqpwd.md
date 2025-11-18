@@ -1,4 +1,7 @@
+# mqpwd
 
+This command gets the jobs which are related to the current directory which you are in (if no args are passed).
+If filters provided, they will be used to sort the jobs from the `squeue`.
 ## Usage
 
 mqpwd [FILTERS]

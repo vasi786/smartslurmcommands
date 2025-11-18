@@ -21,7 +21,7 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 |------|-------------|-------|
 | `--name NAME` | Exact job name match. | — |
 | `--contains SUBSTR` | Match jobs whose name contains `SUBSTR`. | No wildcards allowed. |
-| `--contains-from-stdin` | Accept name patterns from STDIN. | See examples section. |
+| `--contains-from-stdin` | Accept name patterns from STDIN. | See examples section. ([Examples](smartcancel_examples.md)) |
 
 ### Duration & State Filters
 

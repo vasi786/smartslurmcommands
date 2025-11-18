@@ -9,39 +9,23 @@ You could ask, why not use the job name. In my case the job name is a 32 charact
 I was surprised that this functionality doesn't exist natively or someone didn't develop a tool for these use cases.
 Thus, I took myself the challenge (fed it to GPT mostly) and wrote this simple wrapper commands on top of native slurm commands which are used by daily user to make things smarter and efficient in the world of a HPC user.
 
-## [mqpwd](./docs/subcommands/mqpwd.md) (my-squeue-pwd)
-This command gets the jobs which are related to the current directory which you are in (if no args are passed).
-If you pass a path, then the command will fetch the jobs relating to the supplied path.
-<details>
-<summary>Example output of <code>mqpwd</code></summary>
-
-```bash
-[user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd
-    JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
- 15858314      genoa  20_pq_with_Lys_CR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
- 15858313      genoa  20_pq_with_Lys_CR1                    user  R  3-05:08:38 [1-18:51:22]  100G   384 - 2     tcn[549,594]
-
-[user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd ../20_pq_amberR1_bigger_box_20nm_with_Lysines/
-    JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
- 15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
- 15858562      genoa  20_pq_with_Lys_AR1                    user  R  3-04:23:14 [1-19:36:46]  100G   384 - 2     tcn[743-744]
-```
-</details>
-
 ## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
 This is the command I wanted during my PhD.
 The biggest use case for me was to detect the jobs which are associated with the current working directory (I am in) and use that to fetch the jobs and cancel them.
 
-### Featured flags
+## Featured Flags
 
-- `--this-dir` will fetch the jobs related to the current working directory.
-- `--latest` will fetch the latest job in the squeue.
-- `--older-than DUR` will fetch the jobs with elapsed time > `DUR` (e.g. `10m`, `2h`).
-- `--contains SUBSTR` will fetch the job names containing the specified substring (no wildcards allowed).
-- `somecommand | smartcancel --contains-from-stdin` will fetch the job names containing the specified substrings passed through stdin (no wildcards allowed).
+| Flag | Description |
+|------|-------------|
+| `--this-dir` | Fetch jobs related to the current working directory. |
+| `--latest` | Fetch the latest job in the `squeue`. |
+| `--older-than DUR` | Fetch jobs with elapsed time greater than `DUR` (e.g., `10m`, `2h`). |
+| `--contains SUBSTR` | Fetch job names containing the specified substring (no wildcards allowed yet!). |
+| <code>somecommand &#124; smartcancel --contains-from-stdin</code> | Fetch job names containing substrings passed through STDIN (no wildcards allowed yet!). |
 
-Many other flags were implemented and are explained in detail [smartcancel](./docs/subcommands/smartcancel.md).
-If you prefer directly looking at the examples [smartcancel-examples](./docs/subcommands/smartcancel_examples.md).
+
+Many other flags were implemented and are explained in detail here: [smartcancel](./docs/subcommands/smartcancel.md).
+If you prefer directly looking at the examples: [smartcancel-examples](./docs/subcommands/smartcancel_examples.md).
 
 ### Examples
 - If my queue is as below:
@@ -107,6 +91,27 @@ If you prefer directly looking at the examples [smartcancel-examples](./docs/sub
   ```
   </details>
 
-## smartqueue
+## [mqpwd](./docs/subcommands/mqpwd.md) (my-squeue-pwd)
+This command gets the jobs which are related to the current directory which you are in (if no args are passed).
+Same filters which are passed to `smartcancel` can be passed to `mqpwd` to sort the jobs from the queue.
+List of all the implemented filters are detailed [here](./docs/subcommands/mqpwd.md).
+<details>
+<summary>Example output of <code>mqpwd</code></summary>
+
+```bash
+[user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd
+    JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
+ 15858314      genoa  20_pq_with_Lys_CR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
+ 15858313      genoa  20_pq_with_Lys_CR1                    user  R  3-05:08:38 [1-18:51:22]  100G   384 - 2     tcn[549,594]
+
+[user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mqpwd ../20_pq_amberR1_bigger_box_20nm_with_Lysines/
+    JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
+ 15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
+ 15858562      genoa  20_pq_with_Lys_AR1                    user  R  3-04:23:14 [1-19:36:46]  100G   384 - 2     tcn[743-744]
+```
+</details>
+
+
+## smartqueue (todo)
 The same flags can be passed to squeue, which makes it easier to filter jobs which are relevant.
 This uses the same util functions which are being used by the smartcancel and will be implemented in the further versions of this software.
