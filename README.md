@@ -1,5 +1,6 @@
-# smartslurmcommands (ssc)
+<!-- # smartslurmcommands (ssc) -->
 
+![image](./images/test.png)
 After four and half years of PhD in computational biophysics (currently a postdoc), with a lot of usage of HPC, the biggest issue I faced is the effort it takes to cancel jobs.
 For example, I submitted a simulation, and realized that I have missed a parameter and want to cancel that
 job among hundreds of jobs I am running at the same time. Finding this job ID is a challenge, and I always thought of adding my own alias which does this for me smartly.
