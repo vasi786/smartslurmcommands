@@ -24,7 +24,7 @@ util::elapsed_to_seconds() {
 util::older_than() {
   local elapsed="$1" thresh="$2"
   local es ts unit num
-  es="$(time::elapsed_to_seconds "$elapsed")"
+  es="$(util::elapsed_to_seconds "$elapsed")"
 
   unit="${thresh: -1}"
   case "$unit" in
