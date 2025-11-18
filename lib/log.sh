@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 
-# Log levels: error(0) warn(1) info(2) debug(3)
-# Default: info; --verbose will bump to debug.
-
 : "${SSC_LOG_LEVEL:=info}"
 
 _log_level_to_num() {
@@ -12,7 +9,7 @@ _log_level_to_num() {
     warn)  echo 1 ;;
     info)  echo 2 ;;
     debug) echo 3 ;;
-    *)     echo 2 ;;  # fallback to info
+    *)     echo 2 ;;
   esac
 }
 
@@ -23,22 +20,14 @@ _log_enabled() {
   (( current >= wanted ))
 }
 
-log_error() {
-  _log_enabled error || return 0
-  printf 'ERROR: %s\n' "$*" >&2
+_log_print() {
+  # $1 = level label (ERROR/WARN/INFO/DEBUG), rest = message parts
+  local level="$1"; shift
+  local IFS=' '          # force space-separated join regardless of global IFS
+  printf '%s: %s\n' "$level" "$*" >&2
 }
 
-log_warn() {
-  _log_enabled warn || return 0
-  printf 'WARN: %s\n' "$*" >&2
-}
-
-log_info() {
-  _log_enabled info || return 0
-  printf 'INFO: %s\n' "$*" >&2
-}
-
-log_debug() {
-  _log_enabled debug || return 0
-  printf 'DEBUG: %s\n' "$*" >&2
-}
+log_error() { _log_enabled error || return 0; _log_print "ERROR" "$@"; }
+log_warn()  { _log_enabled warn  || return 0; _log_print "WARN"  "$@"; }
+log_info()  { _log_enabled info  || return 0; _log_print "INFO"  "$@"; }
+log_debug() { _log_enabled debug || return 0; _log_print "DEBUG" "$@"; }
