@@ -54,6 +54,7 @@ NAME_CONTAINS=""
 OLDER_THAN=""
 STATE_FILTER=""
 PARTITION_FILTER=""
+REASON_FILTER=""
 LATEST=false
 
 while [[ $# -gt 0 ]]; do
