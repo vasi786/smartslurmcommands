@@ -131,7 +131,7 @@ if [[ -n "$OLDER_THAN" ]]; then
 fi
 # Latest only
 if $LATEST; then
-  CANDIDATES="$(slurm::pick_latest_line <<<"$CANDIDATES")"
+  CANDIDATES="$(util::pick_latest_line <<<"$CANDIDATES")"
 fi
 if [[ -n "$REASON_FILTER" ]]; then
   CANDIDATES="$(awk -F'|' -v r="$REASON_FILTER" '$7 ~ r' <<<"$CANDIDATES")"
