@@ -8,9 +8,9 @@ setup() {
   TMPDIR_UNDER_TEST="$(mktemp -d)"
 }
 
-# teardown() {
-#   rm -rf "$TMPDIR_UNDER_TEST"
-# }
+teardown() {
+  rm -rf "$TMPDIR_UNDER_TEST"
+}
 
 @test "apply_dir_filter_with_fallback: prefers job-name filter when present" {
   dir="$TMPDIR_UNDER_TEST/with_names"
