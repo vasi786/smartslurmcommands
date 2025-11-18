@@ -70,7 +70,7 @@ while [[ $# -gt 0 ]]; do
     --contains) NAME_CONTAINS="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
     --contains-from-stdin) CONTAINS_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --older-than) OLDER_THAN="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
-    --latest) LATEST=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
+    --latest) LATEST=true; STATE_FILTER="RUNNING"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --state)
       val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2
       case "$val" in
