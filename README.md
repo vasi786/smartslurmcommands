@@ -37,6 +37,7 @@ The biggest use case is to detect the jobs which are associated with the current
 `--latest` will fetch the latest job in the squeue.
 
 Many other flags are designed and are explained in detail [smartcancel](./docs/subcommands/smartcancel.md).
+If you prefer directly looking at the examples [smartcancel-examples](./docs/subcommands/smartcancel_examples.md)
 
 ### Examples
 - If my queue is as below:
@@ -72,7 +73,7 @@ Many other flags are designed and are explained in detail [smartcancel](./docs/s
 
 - To find the job related to a different directory and cancel it.
   <details>
-  <summary>Example output of <code>smartcancel --this-dir</code></summary>
+  <summary>Example output of <code>smartcancel --dir PATH</code></summary>
 
   ```bash
   [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ smartcancel --dir ../20_pq_amberR1_bigger_box_20nm_with_Lysines/ --dry-run
@@ -89,7 +90,7 @@ Many other flags are designed and are explained in detail [smartcancel](./docs/s
 
 - To find the latest job in the squeue and cancel it.
   <details>
-  <summary>Example output of <code>smartcancel --this-dir</code></summary>
+  <summary>Example output of <code>smartcancel --latest</code></summary>
 
   ```bash
   [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ smartcancel --latest --dry-run
