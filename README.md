@@ -37,7 +37,7 @@ The biggest use case is to detect the jobs which are associated with the current
 `--latest` will fetch the latest job in the squeue.
 
 Many other flags are designed and are explained in detail [smartcancel](./docs/subcommands/smartcancel.md).
-If you prefer directly looking at the examples [smartcancel-examples](./docs/subcommands/smartcancel_examples.md)
+If you prefer directly looking at the examples [smartcancel-examples](./docs/subcommands/smartcancel_examples.md).
 
 ### Examples
 - If my queue is as below:

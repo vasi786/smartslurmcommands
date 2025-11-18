@@ -65,7 +65,7 @@ while [[ $# -gt 0 ]]; do
     --older-than) OLDER_THAN="$2"; shift 2 ;;
     --latest) LATEST=true; shift ;;
     --state)
-      val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2
+      val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; shift 2
       case "$val" in
         dependency|dep|deps)
           STATE_FILTER="PENDING"

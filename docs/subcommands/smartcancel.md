@@ -45,6 +45,8 @@ Only jobs in this Slurm state (case-insensitive) will be filtered.
 Dependency which is a `reason` in the `squeue` output is also considered as a state.
 Examples: `RUNNING`, `PENDING`, `DEPENDENCY`.
 
+Job reason codes can be found here - https://slurm.schedmd.com/job_reason_codes.html
+
 ### Partition filter
 
 - `--partition NAME[,NAME...]`
