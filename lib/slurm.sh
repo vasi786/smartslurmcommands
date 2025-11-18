@@ -7,6 +7,7 @@ slurm::squeue_lines() {
   local state="${1:-}" user="${2:-$(current_user)}"
   local args=(-h -o "%i|%j|%T|%Z|%M|%S|%R|%P" -u "$user")
   [[ -n "$state" ]] && args+=(-t "$state")
+  log_debug "slurm::squeue_lines: squeue ${args[*]}"
   squeue "${args[@]}"
 }
 

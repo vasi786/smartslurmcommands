@@ -8,7 +8,7 @@ SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/cfg.sh";      cfg::load
 # source "$SSC_HOME/lib/colors.sh";   color::setup "$(cfg::get color auto)"
-# source "$SSC_HOME/lib/log.sh";      LOG_LEVEL="$(cfg::get log_level info)"
+source "$SSC_HOME/lib/log.sh";
 source "$SSC_HOME/lib/io.sh"
 source "$SSC_HOME/lib/util.sh"
 # source "$SSC_HOME/lib/args.sh"
@@ -93,6 +93,7 @@ while [[ $# -gt 0 ]]; do
     --force) FORCE=true; shift ;;
     -h|--help) usage; exit 0 ;;
     --version) util::version; exit 0 ;;
+    --verbose) SSC_LOG_LEVEL=debug; shift ;;
     *) die 2 "Unknown argument: $1 (see --help)";;
   esac
 done
