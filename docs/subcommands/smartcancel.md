@@ -1,5 +1,5 @@
 # smartcancel
-This command with a filters (see below) will cancel a job. Before cancelling a final confirm question with (yes/no) will be asked to confirm the cancellation of the job.
+This command with filters (see below) will cancel a job. Before cancelling a final confirm question with (yes/no) will be asked to confirm the cancellation of the job.
 If no filters are passed, the command will exit with a warning.
 
 ## Usage

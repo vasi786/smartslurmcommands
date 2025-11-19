@@ -7,37 +7,35 @@ IFS=$'\n\t'
 SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/cfg.sh";      cfg::load
-# source "$SSC_HOME/lib/colors.sh";   color::setup "$(cfg::get color auto)"
 source "$SSC_HOME/lib/log.sh";
-# source "$SSC_HOME/lib/io.sh"
 source "$SSC_HOME/lib/util.sh"
 source "$SSC_HOME/lib/args.sh"
 source "$SSC_HOME/lib/slurm.sh"
-# source "$SSC_HOME/lib/ui.sh"
 
 usage() {
   cat <<'EOF'
 Usage: smartcancel [FILTERS] [BEHAVIOR]
 
 Filters (combine as needed):
-  --this-dir                 Cancel jobs whose WorkDir == $PWD (fallback: name == basename($PWD))
-  --dir PATH                 Cancel jobs whose WorkDir == PATH (fallback: name == basename(PATH))
-  --name NAME                Exact job name match
-  --contains SUBSTR          Job name contains substring
-  --contains-from-stdin      with this option, smartcancel accept's patterns from stdin (ex: somecommand |smartcancel --contains-from-stdin --dry-run)
-  --older-than DUR           Only jobs with elapsed time > DUR (e.g., 10m, 2h)
-  --state STATE              Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
+  --this-dir                   Cancel jobs whose WorkDir == $PWD (fallback: name == basename($PWD))
+  --dir PATH                   Cancel jobs whose WorkDir == PATH (fallback: name == basename(PATH))
+  --name NAME                  Exact job name match
+  --contains SUBSTR            Job name contains substring
+  --contains-from-stdin        with this option, smartcancel accept's patterns from stdin (ex: somecommand |smartcancel --contains-from-stdin --dry-run)
+  --older-than DUR             Only jobs with elapsed time > DUR (e.g., 10m, 2h)
+  --state STATE                Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
   --partition NAME[,NAME...]   Only jobs in these Slurm partitions
-  --latest                   Pick only the latest matching job (by StartTime or JobID)
-
-Dependency handling (deprecated):
-  --with-dependents          Also cancel jobs that depend on selected jobs (reverse dependency walk)
+  --latest                     Pick only the latest matching job (by StartTime or JobID)
 
 Behavior:
-  --dry-run                  Show what would be cancelled
-  --force                      Do not prompt
-  -h, --help                 Show this help
-  --version                  Shows the version of smartslurmcommands
+  --dry-run                    Show what would be cancelled.
+  --force                      Do not prompt.
+
+Other:
+  -h, --help                   Show this help.
+  --version                    Shows the version of smartslurmcommands.
+  --verbose                    Prints the information of at what step the code is and how many jobs did it find for the filter you passed.
+  --debug                      Prints the information of at what step the code  and outputs the command.
 EOF
 }
 
@@ -60,7 +58,6 @@ REASON="$DEFAULT_REASON"
 CONTAINS_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
 declare -a CONTAINS_JOB_NAMES=() # will be used for contains-from-stdin, for taking the multiple inputs from the stdin and treats as part or whole job names
-VERBOSE=false
 SSC_LOG_LEVEL="${SSC_LOG_LEVEL:-none}"
 
 
@@ -86,7 +83,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if (( SELECTOR_COUNT == 0 )); then
-  die 2 "Refusing to operate with no selector. Use one of: --this-dir, --dir, --name, --contains, --contains-from-stdin, --latest, --state."
+  die 2 "Refusing to operate with no filter selector. Use one of: --this-dir, --dir, --name, --contains, --contains-from-stdin, --latest, --state --partition --older-than."
 fi
 
 # If user asked to read patterns from stdin, do it now
@@ -109,25 +106,29 @@ CANDIDATES="$SQUEUE_CACHE"
 if $THIS_DIR || [[ -n "$DIR_FILTER" ]]; then
   dir="${DIR_FILTER:-$PWD}"
   [[ -d "$dir" ]] || die 2 "Directory not found: $dir"
-  CANDIDATES="$(printf '%s\n' "$CANDIDATES" \
-    | util::apply_dir_filter_with_fallback "$dir")"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::apply_dir_filter_with_fallback "$dir")"
   [[ -z "$CANDIDATES" ]] && { echo "No jobs found for this directory: $dir"; exit 0; }
+  log_jobs_count "after dir filter" "$CANDIDATES"
 fi
 
 # Name filters
 if [[ -n "$NAME_EQ" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_values 2 "$NAME_EQ")"
+  log_jobs_count "after --name '$NAME_EQ'" "$CANDIDATES"
 fi
 if [[ -n "$NAME_CONTAINS" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "$NAME_CONTAINS")"
+  log_jobs_count "after --contains '$NAME_CONTAINS'" "$CANDIDATES"
 fi
 # Multiple contains patterns from stdin
 if ((${#CONTAINS_JOB_NAMES[@]} > 0)); then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "${CONTAINS_JOB_NAMES[@]}")"
+  log_jobs_count "after --contains-from-stdin" "$CANDIDATES"
 fi
 
 if [[ -n "$PARTITION_FILTER" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_partition "$PARTITION_FILTER")"
+  log_jobs_count "after --partition '$PARTITION_FILTER'" "$CANDIDATES"
 fi
 
 # Time filter in pure Bash (no awk math needed)
@@ -140,15 +141,18 @@ if [[ -n "$OLDER_THAN" ]]; then
     fi
   done <<< "$CANDIDATES"
   CANDIDATES="$filtered"
+  log_jobs_count "after --older-than '$OLDER_THAN'" "$CANDIDATES"
 fi
 
 # Latest only
 if $LATEST; then
   CANDIDATES="$(util::pick_latest_line <<<"$CANDIDATES")"
+  log_jobs_count "after --latest" "$CANDIDATES"
 fi
 
 if [[ -n "$REASON_FILTER" ]]; then
   CANDIDATES="$(awk -F'|' -v r="$REASON_FILTER" '$7 ~ r' <<<"$CANDIDATES")"
+  log_jobs_count "after reason filter '$REASON_FILTER'" "$CANDIDATES"
 fi
 
 # Build ID list

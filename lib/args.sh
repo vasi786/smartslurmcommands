@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034
+# stops complaining about the unusage of the FILTERS (pre-commit phase)
 args::parse_state() {
     local var
     val="$(tr '[:upper:]' '[:lower:]' <<<"$1")"

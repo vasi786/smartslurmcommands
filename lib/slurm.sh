@@ -8,7 +8,6 @@ slurm::squeue_lines() {
   local args=(-h -o "%i|%j|%T|%Z|%M|%S|%R|%P" -u "$user")
   [[ -n "$state" ]] && args+=(-t "$state")
   log_run_capture "slurm::squeue_lines" squeue "${args[@]}"
-  squeue "${args[@]}"
 }
 
 # Collect jobs that depend on any of the target IDs (reverse dependency walk).
@@ -79,8 +78,10 @@ slurm::squeue_by_job_names() {
   # Two-file trick:
   #  - First input (tmpnames): build set[name]
   #  - Second input (squeue output): print rows where JobName ($2) is in set
-  squeue -h -o "%i|%j|%T|%Z|%M|%S|%R" -u "$user" \
-  | awk -F'|' 'NR==FNR { set[$1]; next } $2 in set' "$tmpnames" -
+  local rows
+  rows="$(log_run_capture "slurm::squeue_by_job_names" squeue \
+            -h -o "%i|%j|%T|%Z|%M|%S|%R|%P" -u "$user")"
+  awk -F'|' 'NR==FNR { set[$1]; next } $2 in set' "$tmpnames" <<<"$rows"
 
   local rc=$?
   rm -f "$tmpnames"

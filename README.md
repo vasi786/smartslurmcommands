@@ -7,7 +7,7 @@ For example, I submitted a simulation, and realized that I have missed a paramet
 job among hundreds of jobs I am running at the same time. Finding this job ID is a challenge, and I always thought of adding my own alias which does this for me smartly.
 You could ask, why not use the job name. In my case the job name is a 32 character random string sometimes, and I would like to minimize the operations to cancel the latest job which I submitted an hour ago.
 I was surprised that this functionality doesn't exist natively or someone didn't develop a tool for these use cases.
-Thus, I took myself the challenge (fed it to GPT mostly) and wrote this simple wrapper commands on top of native slurm commands which are used by daily user to make things smarter and efficient in the world of a HPC user.
+Thus, I took myself the challenge (fed it to GPT mostly) and wrote this wrapper commands on top of native slurm commands which are used by daily user to make things smarter and efficient in the world of a HPC user.
 
 ## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
 This is the command I wanted during my PhD.
