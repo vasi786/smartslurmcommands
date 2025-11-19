@@ -60,6 +60,7 @@ REASON="$DEFAULT_REASON"
 CONTAINS_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
 declare -a CONTAINS_JOB_NAMES=() # will be used for contains-from-stdin, for taking the multiple inputs from the stdin and treats as part or whole job names
+VERBOSE=false
 
 
 while [[ $# -gt 0 ]]; do
@@ -93,7 +94,7 @@ while [[ $# -gt 0 ]]; do
     --force) FORCE=true; shift ;;
     -h|--help) usage; exit 0 ;;
     --version) util::version; exit 0 ;;
-    --verbose) SSC_LOG_LEVEL=debug; shift ;;
+    --verbose) VERBOSE=true; shift ;;
     *) die 2 "Unknown argument: $1 (see --help)";;
   esac
 done
