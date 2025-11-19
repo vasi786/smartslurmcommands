@@ -305,5 +305,5 @@ EOF
 @test "smartcancel refuses with no selector" {
   run "$SSC_HOME/cmd/smartcancel/smartcancel.sh" --dry-run
   [ "$status" -eq 2 ]
-  [[ "$output" =~ Refusing\ to\ operate\ with\ no\ selector ]]
+  [[ "$output" =~ Refusing\ to\ operate\ with\ no\ filter\ selector ]]
 }
