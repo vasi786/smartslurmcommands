@@ -21,6 +21,7 @@ teardown() {
 
 @test "--contains matches all job names containing substring" {
   run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --contains foo --dry-run'
+  echo "output is $output"
   [ "$status" -eq 0 ]
 
   # All foo* jobs should appear
