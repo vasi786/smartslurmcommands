@@ -7,6 +7,7 @@ SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/slurm.sh"
 source "$SSC_HOME/lib/util.sh"
+source "$SSC_HOME/lib/log.sh"
 
 usage() {
   cat <<'EOF'

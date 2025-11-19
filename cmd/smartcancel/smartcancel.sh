@@ -9,11 +9,11 @@ source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/cfg.sh";      cfg::load
 # source "$SSC_HOME/lib/colors.sh";   color::setup "$(cfg::get color auto)"
 source "$SSC_HOME/lib/log.sh";
-source "$SSC_HOME/lib/io.sh"
+# source "$SSC_HOME/lib/io.sh"
 source "$SSC_HOME/lib/util.sh"
-# source "$SSC_HOME/lib/args.sh"
+source "$SSC_HOME/lib/args.sh"
 source "$SSC_HOME/lib/slurm.sh"
-source "$SSC_HOME/lib/ui.sh"
+# source "$SSC_HOME/lib/ui.sh"
 
 usage() {
   cat <<'EOF'
@@ -61,6 +61,7 @@ CONTAINS_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
 declare -a CONTAINS_JOB_NAMES=() # will be used for contains-from-stdin, for taking the multiple inputs from the stdin and treats as part or whole job names
 VERBOSE=false
+SSC_LOG_LEVEL="${SSC_LOG_LEVEL:-none}"
 
 
 while [[ $# -gt 0 ]]; do
@@ -72,29 +73,14 @@ while [[ $# -gt 0 ]]; do
     --contains-from-stdin) CONTAINS_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --older-than) OLDER_THAN="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
     --latest) LATEST=true; STATE_FILTER="RUNNING"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
-    --state)
-      val="$(tr '[:upper:]' '[:lower:]' <<<"$2")"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2
-      case "$val" in
-        dependency|dep|deps)
-          STATE_FILTER="PENDING"
-          REASON_FILTER="Dependency"
-          ;;
-        pending|running|suspended|completed|cancelled|failed|timeout|node_fail|preempted|boot_fail|deadline|out_of_memory|completing|configuring|resizing|resv_del_hold|requeued|requeue_fed|requeue_hold|revoked|signaling|special_exit|stage_out|stopped)
-          STATE_FILTER="$(tr '[:lower:]' '[:upper:]' <<<"$val")"
-          ;;
-        *)
-          die 2 "Unknown state: $val"
-          ;;
-      esac
-      ;;
+    --state) SELECTOR_COUNT=$((SELECTOR_COUNT+1)); args::parse_state "$2"; shift 2 ;;
     --partition) PARTITION_FILTER="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1)); shift 2 ;;
-    # --with-dependents) WITH_DEPS=true; shift ;;
-    # --reason) REASON="$2"; shift 2 ;;
     --dry-run) DRY=true; shift ;;
     --force) FORCE=true; shift ;;
     -h|--help) usage; exit 0 ;;
     --version) util::version; exit 0 ;;
-    --verbose) VERBOSE=true; shift ;;
+    --verbose) SSC_LOG_LEVEL=info; shift ;;
+    --debug) SSC_LOG_LEVEL=debug; shift ;;
     *) die 2 "Unknown argument: $1 (see --help)";;
   esac
 done
