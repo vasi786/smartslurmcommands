@@ -21,7 +21,9 @@ Filters (combine as needed):
   --dir PATH                   Cancel jobs whose WorkDir == PATH (fallback: name == basename(PATH))
   --name NAME                  Exact job name match
   --contains SUBSTR            Job name contains substring
-  --contains-from-stdin        with this option, smartcancel accept's patterns from stdin (ex: somecommand |smartcancel --contains-from-stdin --dry-run)
+  --contains-from-stdin        With this option, smartcancel accept's substring from stdin (ex: somecommand |smartcancel --contains-from-stdin --dry-run)
+  --regex PATTERN              Job names with matching regex pattern will be filtered
+  --regex-from-stdin           With this option, smartcancel accept's regex patterns from stdin (ex: somecommand |smartcancel --regex-from-stdin --dry-run)
   --older-than DUR             Only jobs with elapsed time > DUR (e.g., 10m, 2h)
   --state STATE                Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
   --partition NAME[,NAME...]   Only jobs in these Slurm partitions
@@ -46,6 +48,7 @@ THIS_DIR=false
 DIR_FILTER=""
 NAME_EQ=""
 NAME_CONTAINS=""
+NAME_REGEX=""
 OLDER_THAN=""
 STATE_FILTER=""
 PARTITION_FILTER=""
@@ -56,8 +59,10 @@ DRY=false
 FORCE=false
 REASON="$DEFAULT_REASON"
 CONTAINS_FROM_STDIN=false
+REGEX_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
 declare -a CONTAINS_JOB_NAMES=() # will be used for contains-from-stdin, for taking the multiple inputs from the stdin and treats as part or whole job names
+declare -a REGEX_PATTERNS=() # will be used for regex-from-stdin, for taking the multiple inputs from the stdin and treats as part or whole job names
 SSC_LOG_LEVEL="${SSC_LOG_LEVEL:-none}"
 
 
@@ -67,7 +72,9 @@ while [[ $# -gt 0 ]]; do
     --dir) DIR_FILTER="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
     --name) NAME_EQ="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
     --contains) NAME_CONTAINS="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
+    --regex) NAME_REGEX="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
     --contains-from-stdin) CONTAINS_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
+    --regex-from-stdin) REGEX_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --older-than) OLDER_THAN="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
     --latest) LATEST=true; STATE_FILTER="RUNNING"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --state) SELECTOR_COUNT=$((SELECTOR_COUNT+1)); args::parse_state "$2"; shift 2 ;;
@@ -86,6 +93,10 @@ if (( SELECTOR_COUNT == 0 )); then
   die 2 "Refusing to operate with no filter selector. Use one of: --this-dir, --dir, --name, --contains, --contains-from-stdin, --latest, --state --partition --older-than."
 fi
 
+if $CONTAINS_FROM_STDIN && $REGEX_FROM_STDIN; then
+  die 2 "Cannot combine --contains-from-stdin and --regex-from-stdin in the same call."
+fi
+
 # If user asked to read patterns from stdin, do it now
 if $CONTAINS_FROM_STDIN; then
   if [[ -t 0 ]]; then
@@ -96,6 +107,18 @@ if $CONTAINS_FROM_STDIN; then
   done
   if ((${#CONTAINS_JOB_NAMES[@]} == 0)); then
     die 2 "--contains-from-stdin received no jobnames on stdin."
+  fi
+fi
+
+if $REGEX_FROM_STDIN; then
+  if [[ -t 0 ]]; then
+    die 2 "--regex-from-stdin was given, but stdin is a TTY (no input). Pipe patterns in."
+  fi
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && REGEX_PATTERNS+=("$line")
+  done
+  if ((${#REGEX_PATTERNS[@]} == 0)); then
+    die 2 "--regex-from-stdin received no patterns on stdin."
   fi
 fi
 
@@ -120,10 +143,19 @@ if [[ -n "$NAME_CONTAINS" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "$NAME_CONTAINS")"
   log_jobs_count "after --contains '$NAME_CONTAINS'" "$CANDIDATES"
 fi
+if [[ -n "$NAME_REGEX" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_regex 2 "$NAME_REGEX")"
+  log_jobs_count "after --regex '$NAME_REGEX'" "$CANDIDATES"
+fi
 # Multiple contains patterns from stdin
 if ((${#CONTAINS_JOB_NAMES[@]} > 0)); then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "${CONTAINS_JOB_NAMES[@]}")"
   log_jobs_count "after --contains-from-stdin" "$CANDIDATES"
+fi
+# Regex-from-stdin (many patterns, treated as regex alternation)
+if ((${#REGEX_PATTERNS[@]} > 0)); then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_regex 2 "${REGEX_PATTERNS[@]}")"
+  log_jobs_count "after --regex-from-stdin" "$CANDIDATES"
 fi
 
 if [[ -n "$PARTITION_FILTER" ]]; then
