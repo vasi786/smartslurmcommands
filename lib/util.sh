@@ -98,6 +98,25 @@ util::filter_candidates_by_field_contains() {
   '
 }
 
+util::filter_candidates_by_field_regex() {
+  local field="${1:?need field number}"; shift
+
+  # No patterns → pass through
+  if [ "$#" -eq 0 ]; then cat; return 0; fi
+
+  local pattern="" term
+  for term in "$@"; do
+    [[ -z "$term" ]] && continue
+    pattern="${pattern:+$pattern|}($term)"
+  done
+
+  [[ -z "$pattern" ]] && { cat; return 0; }
+
+  awk -F'|' -v f="$field" -v pat="$pattern" '
+    $f ~ pat { print }
+  '
+}
+
 # Return newline-separated job names declared in #SBATCH directives within *.sh in DIR.
 # Handles:
 #   #SBATCH --job-name=NAME
