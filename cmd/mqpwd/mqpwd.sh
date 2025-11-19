@@ -110,15 +110,19 @@ if [[ -z "$CANDIDATES" ]]; then
   echo "No jobs found related to: $absdir"
   exit 0
 fi
+log_jobs_count "after dir filter" "$CANDIDATES"
 
 if [[ -n "$NAME_EQ" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_values 2 "$NAME_EQ")"
+  log_jobs_count "after --name '$NAME_EQ'" "$CANDIDATES"
 fi
 if [[ -n "$NAME_CONTAINS" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "$NAME_CONTAINS")"
+  log_jobs_count "after --contains '$NAME_CONTAINS'" "$CANDIDATES"
 fi
 if [[ -n "$PARTITION_FILTER" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_partition "$PARTITION_FILTER")"
+  log_jobs_count "after --partition '$PARTITION_FILTER'" "$CANDIDATES"
 fi
 if [[ -n "$OLDER_THAN" ]]; then
   filtered=""
@@ -129,13 +133,16 @@ if [[ -n "$OLDER_THAN" ]]; then
     fi
   done <<< "$CANDIDATES"
   CANDIDATES="$filtered"
+  log_jobs_count "after --older-than '$OLDER_THAN'" "$CANDIDATES"
 fi
 # Latest only
 if $LATEST; then
   CANDIDATES="$(util::pick_latest_line <<<"$CANDIDATES")"
+  log_jobs_count "after --latest" "$CANDIDATES"
 fi
 if [[ -n "$REASON_FILTER" ]]; then
   CANDIDATES="$(awk -F'|' -v r="$REASON_FILTER" '$7 ~ r' <<<"$CANDIDATES")"
+  log_jobs_count "after reason filter '$REASON_FILTER'" "$CANDIDATES"
 fi
 # Extract job IDs and print like your `mq` alias
 csv_ids="$(cut -d'|' -f1 <<<"$CANDIDATES" | sed '/^$/d' | paste -sd, -)"
