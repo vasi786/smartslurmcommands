@@ -19,9 +19,9 @@ smartqueue [FILTERS]
 | Flag | Description | Notes |
 |------|-------------|-------|
 | `--name NAME` | Exact job name match. | — |
-| `--contains SUBSTR` | Match jobs whose name contains `SUBSTR`. | No wildcards allowed. |
+| `--contains SUBSTR` | Match jobs whose name contains `SUBSTR` of a job name. | No wildcards allowed. |
 | `--regex PATTERN` | Show jobs with job names which matches the provided regex pattern. | specific for regular expressions. For wildcard, use `.*` |
-| `--contains-from-stdin` | Accept name patterns from STDIN. | Just provide list of substrings seperated by a separator supplied by `--sep` flag. See examples section. ([Examples](smartcancel_examples.md)) |
+| `--contains-from-stdin` | Accept name patterns from STDIN. | Just provide list of substrings (of jobnames) seperated by a separator supplied by `--sep` flag. See examples section. ([Examples](smartcancel_examples.md)) |
 | `--regex-from-stdin` | With this option, smartqueue accept's regex patterns from stdin (ex: somecommand \|smartqueue --regex-from-stdin).  | Just provide list of regular expressions with seperators specified by `--sep` flag|
 | `--sep SEP` | provide a separator to tell the wrapper how to break your stdin input provided with `--contains-from-stdin` and `--regex-from-stdin` flags | almost all kinds of seperators will work (Hopefully!) |
 
@@ -53,5 +53,6 @@ smartqueue [FILTERS]
 | `--verbose` | Prints the information of at what step the code is and how many jobs did it find for the filter you passed. | - |
 | `--debug` | Prints the information of at what step the code and outputs the command. | - |
 
-
-See the detailed command examples here: [Examples](smartcancel_examples.md).
+## TODO:
+- smartqueue examples
+<!-- See the detailed command examples here: [Examples](smartqueue_examples.md). -->

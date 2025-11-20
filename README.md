@@ -1,32 +1,36 @@
 <!-- # smartslurmcommands (ssc) -->
 
 ![image](images/github_banner.png)
+smartslurmcommands (SSC) is a slurm command wrapper that provides enhanced slurm utilities with advanced filtering for job discovery and their cancellation (if needed).
 
-After four and half years of PhD in computational biophysics (currently a postdoc), with a lot of usage of HPC, the biggest issue I faced is the effort it takes to cancel jobs.
-For example, I submitted a simulation, and realized that I have missed a parameter and want to cancel that
-job among hundreds of jobs I am running at the same time. Finding this job ID is a challenge, and I always thought of adding my own alias which does this for me smartly.
-You could ask, why not use the job name. In my case the job name is a 32 character random string sometimes, and I would like to minimize the operations to cancel the latest job which I submitted an hour ago.
-I was surprised that this functionality doesn't exist natively or someone didn't develop a tool for these use cases.
-Thus, I took myself the challenge (fed it to GPT mostly) and wrote this wrapper commands on top of native slurm commands which are used by daily user to make things smarter and efficient in the world of a HPC user.
+## Featured Flags (combine as needed)
+
+| Flag | Description |
+|------|-------------|
+| `--this-dir` | Fetch jobs related to the current working directory. |
+| `--dir PATH` | Fetch jobs related to the provided `PATH`. |
+| `--latest` | Fetch the latest job in the `squeue`. |
+| `--older-than DUR` | Fetch jobs with elapsed time greater than `DUR` (e.g., `10m`, `2h`). |
+| `--contains SUBSTR` | Fetch job names containing the specified substring of a jobname. |
+| `--regex PATTERN` | Show jobs with job names which matches the provided regex pattern. |
+| <code>somecommand &#124; smartcancel --contains-from-stdin</code> | Fetch job names containing substrings (of a jobname) passed through STDIN. |
+| <code>somecommand &#124; smartcancel --regex-from-stdin</code> | Fetch job names matching regex patterns passed through STDIN. |
+| `--dry-run` | In case of `smartcancel`, this flag will show the jobs that will be cancelled. |
+
+
+## [smartqueue](./docs/subcommands/smartqueue.md)
+  smartqueue is a smarter squeue wrapper that helps you inspect slurm jobs using intuitive, workflow-oriented filters.
+  It can match jobs by directory, job-name, substring, regex, stdin patterns, or pick only the latest matching job.
+  The above featured flags are just a subset of features.
+  For full view of feature, see [here](./docs/subcommands/smartqueue.md)
+
+ Why stop just viewing the jobs, Do you want to cancel the ones you have viewed? (see below).
 
 ## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
-  This is the command I wanted during my PhD.
+  This is the command I wanted during my PhD (see Motivation).
   The biggest use case for me was to detect the jobs which are associated with the current working directory (I am in) and use that to fetch the jobs and cancel them.
 
-  ## Featured Flags
-
-  | Flag | Description |
-  |------|-------------|
-  | `--this-dir` | Fetch jobs related to the current working directory. |
-  | `--latest` | Fetch the latest job in the `squeue`. |
-  | `--older-than DUR` | Fetch jobs with elapsed time greater than `DUR` (e.g., `10m`, `2h`). |
-  | `--contains SUBSTR` | Fetch job names containing the specified substring (no wildcards allowed yet!). |
-  | `--regex PATTERN` | Show jobs with job names which matches the provided regex pattern. |
-  | <code>somecommand &#124; smartcancel --contains-from-stdin</code> | Fetch job names containing substrings passed through STDIN (no wildcards allowed yet!). |
-  | <code>somecommand &#124; smartcancel --regex-from-stdin</code> | Fetch job names matching regex patterns passed through STDIN (no wildcards allowed yet!). |
-
-
-  Many other flags were implemented and are explained in detail here: [smartcancel](./docs/subcommands/smartcancel.md).
+  Detailed explanation of all the available flags can be found here: [smartcancel](./docs/subcommands/smartcancel.md).
   If you prefer directly looking at the examples: [smartcancel-examples](./docs/subcommands/smartcancel_examples.md).
 
   ### Examples
@@ -95,7 +99,7 @@ Thus, I took myself the challenge (fed it to GPT mostly) and wrote this wrapper 
 
 ## [mqpwd](./docs/subcommands/mqpwd.md) (my-squeue-pwd)
 This command gets the jobs which are related to the current directory which you are in (if no args are passed).
-Same filters which are passed to `smartcancel` can be passed to `mqpwd` to sort the jobs from the queue.
+Same filters which are passed to `smartcancel|smartqueue` can be passed to `mqpwd` to sort the jobs from the queue.
 List of all the implemented filters are detailed [here](./docs/subcommands/mqpwd.md).
 <details>
 <summary>Example output of <code>mqpwd</code></summary>
@@ -113,7 +117,10 @@ List of all the implemented filters are detailed [here](./docs/subcommands/mqpwd
 ```
 </details>
 
-
-## smartqueue (todo)
-The same flags can be passed to squeue, which makes it easier to filter jobs which are relevant.
-This uses the same util functions which are being used by the smartcancel and will be implemented in the further versions of this software.
+## Motivation
+After four and half years of PhD in computational biophysics (currently a postdoc), with a lot of usage of HPC, the biggest issue I faced is the effort it takes to cancel jobs.
+For example, I submitted a simulation, and realized that I have missed a parameter and want to cancel that
+job among hundreds of jobs I am running at the same time. Finding this job ID is a challenge, and I always thought of adding my own alias which does this for me smartly.
+You could ask, why not use the job name. In my case the job name is a 32 character random string sometimes, and I would like to minimize the operations to cancel the latest job which I submitted an hour ago.
+I was surprised that this functionality doesn't exist natively or someone didn't develop a tool for these use cases.
+Thus, I took myself the challenge (fed it to GPT mostly) and wrote this wrapper commands on top of native slurm commands which are used by daily user to make things smarter and efficient in the world of a HPC user.
