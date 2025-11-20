@@ -184,43 +184,42 @@ util::apply_dir_filter_with_fallback() {
 util::version() {
     cat "$SSC_HOME/VERSION"
 }
+
 util::read_patterns_from_stdin() {
-  # Read patterns from stdin.
-  # Default separator = newline.
-  # If user provides a custom separator, e.g. --sep ';' or '|', then
-  # this function splits using that instead.
-  #
-  # Usage:
-  #   mapfile -t arr < <(util::read_patterns_from_stdin "$SEP")
-  #
-  # If stdin is a TTY → error.
-  # If no patterns → error unless caller handles it.
-  local sep="${1:-$'\n'}"   # default = newline
+  local sep="${1:-$'\n'}"
   local buf
 
-  # stdin must not be a tty
+  # Require non-TTY stdin
   if [[ -t 0 ]]; then
     echo "error: expecting stdin but got TTY" >&2
     return 2
   fi
 
-  # read whole stdin into buf
   buf="$(cat)"
   [[ -n "$buf" ]] || { echo "error: no patterns received on stdin" >&2; return 2; }
 
-  # If separator is newline → simple passthrough
+  # Default: newline separator → pass through as-is
   if [[ "$sep" == $'\n' ]]; then
-    printf "%s\n" "$buf"
+    printf '%s\n' "$buf"
     return 0
   fi
 
-  # Otherwise split manually
-  # Replace ALL occurrences of $sep with newline
-  # We escape the separator properly for sed
-  local esc_sep
-  esc_sep=$(printf '%s' "$sep" | sed -E 's/[][\.^$*+?(){}|]/\\&/g')
+  # Guard against empty separator (infinite loop)
+  if [[ -z "$sep" ]]; then
+    echo "error: empty separator passed to read_patterns_from_stdin" >&2
+    return 2
+  fi
 
-  printf "%s" "$buf" \
-    | sed "s/${esc_sep}/\\
-/g"
+  # Pure Bash split on a literal substring $sep
+  local rest="$buf"
+  local out="" chunk
+
+  while [[ "$rest" == *"$sep"* ]]; do
+    chunk="${rest%%"$sep"*}"     # part before first sep
+    out+="$chunk"$'\n'
+    rest="${rest#*"$sep"}"       # strip up to and including first sep
+  done
+  out+="$rest"
+
+  printf '%s\n' "$out"
 }
