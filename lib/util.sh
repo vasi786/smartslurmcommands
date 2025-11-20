@@ -76,26 +76,24 @@ util::filter_candidates_by_field_values() {
   ' <(printf '%s\n' "$@") -
 }
 
-# Keep rows whose FIELD contains ANY of the provided substrings.
+# Keep rows whose FIELD contains ANY of the provided substrings (literal, non-regex).
 # Usage:
-#   printf "%s\n" "1|alpha" "2|beta" "3|gamma" | util::filter_candidates_by_field_contains 2 ta mm
-#   -> "2|beta" and "3|gamma"
-
+#   printf '%s\n' "1|alpha" "2|beta" \
+#     | util::filter_candidates_by_field_contains 2 foo bar
 util::filter_candidates_by_field_contains() {
   local field="${1:?need field number}"; shift
   if [ "$#" -eq 0 ]; then cat; return 0; fi
 
-  # Build an alternation regex from the args, escaping regex metachars
-  local pattern="" term esc
-  for term in "$@"; do
-    esc=$(printf '%s' "$term" | sed -e 's/[][^$.*/\\?+(){}|]/\\&/g')
-    pattern="${pattern:+$pattern|}$esc"
-  done
-
-  awk -F'|' -v f="$field" -v pat="$pattern" '
-    $f ~ pat { print }
-  '
+  awk -F'|' -v f="$field" '
+    NR==FNR { pats[++np] = $1; next }
+    {
+      for (i = 1; i <= np; i++) {
+        if (index($f, pats[i]) > 0) { print; break }
+      }
+    }
+  ' <(printf '%s\n' "$@") -
 }
+
 
 util::filter_candidates_by_field_regex() {
   local field="${1:?need field number}"; shift
