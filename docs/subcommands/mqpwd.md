@@ -41,9 +41,11 @@ mqpwd [FILTERS]
 |------|-------------|-------|
 | `--latest` | show only the latest matching job (by StartTime or JobID). | — |
 
-
 ## Additional
 
 | Flag | Description | Notes |
 |------|-------------|-------|
 | `-h`, `--help` | Show all flags on the terminal. | — |
+| `--version` | Shows the version of smartslurmcommands. | - |
+| `--verbose` | Prints the information of at what step the code is and how many jobs did it find for the filter you passed. | - |
+| `--debug` | Prints the information of at what step the code and outputs the command. | - |

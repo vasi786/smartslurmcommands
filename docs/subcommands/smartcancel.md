@@ -21,7 +21,10 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 |------|-------------|-------|
 | `--name NAME` | Exact job name match. | — |
 | `--contains SUBSTR` | Match jobs whose name contains `SUBSTR`. | No wildcards allowed. |
-| `--contains-from-stdin` | Accept name patterns from STDIN. | See examples section. ([Examples](smartcancel_examples.md)) |
+| `--regex PATTERN` | Show jobs with job names which matches the provided regex pattern. | specific for regular expressions. For wildcard, use `.*` (example - `20_.*_pq_.*_AR1`) |
+| `--contains-from-stdin` | Accept name patterns from STDIN. | Just provide list of substrings seperated by a separator supplied by `--sep` flag. See examples section. ([Examples](smartcancel_examples.md)) |
+| `--regex-from-stdin` | With this option, smartqueue accept's regex patterns from stdin (ex: somecommand \|smartqueue --regex-from-stdin).  | Just provide list of regular expressions with seperators specified by `--sep` flag|
+| `--sep SEP` | provide a separator to tell the wrapper how to break your stdin input provided with `--contains-from-stdin` and `--regex-from-stdin` flags | almost all kinds of seperators will work (Hopefully!) |
 
 ### Duration & State Filters
 
@@ -54,6 +57,8 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 | Flag | Description | Notes |
 |------|-------------|-------|
 | `-h`, `--help` | Show all flags on the terminal. | — |
-
+| `--version` | Shows the version of smartslurmcommands. | - |
+| `--verbose` | Prints the information of at what step the code is and how many jobs did it find for the filter you passed. | - |
+| `--debug` | Prints the information of at what step the code and outputs the command. | - |
 
 See the detailed command examples here: [Examples](smartcancel_examples.md).
