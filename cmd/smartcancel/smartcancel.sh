@@ -14,20 +14,20 @@ source "$SSC_HOME/lib/slurm.sh"
 
 usage() {
   cat <<'EOF'
-Usage: smartcancel [FILTERS] [BEHAVIOR]
+  Usage: smartcancel [FILTERS] [BEHAVIOR (optional)]
 
 Filters (combine as needed):
-  --this-dir                   Cancel jobs whose WorkDir == $PWD (fallback: name == basename($PWD))
-  --dir PATH                   Cancel jobs whose WorkDir == PATH (fallback: name == basename(PATH))
-  --name NAME                  Exact job name match
-  --contains SUBSTR            Job name contains substring
-  --contains-from-stdin        With this option, smartcancel accept's substring from stdin (ex: somecommand |smartcancel --contains-from-stdin --dry-run)
-  --regex PATTERN              Job names with matching regex pattern will be filtered
-  --regex-from-stdin           With this option, smartcancel accept's regex patterns from stdin (ex: somecommand |smartcancel --regex-from-stdin --dry-run)
-  --older-than DUR             Only jobs with elapsed time > DUR (e.g., 10m, 2h)
-  --state STATE                Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive
-  --partition NAME[,NAME...]   Only jobs in these Slurm partitions
-  --latest                     Pick only the latest matching job (by StartTime or JobID)
+  --this-dir                   Cancel jobs whose WorkDir == $PWD or fallback to the job_name found in the CWD.
+  --dir PATH                   Cancel jobs whose WorkDir == PATH or fallback to the job_name found in the PATH.
+  --name NAME                  Exact job name match.
+  --contains SUBSTR            Job name contains substring.
+  --contains-from-stdin        With this option, smartcancel accept's substring from stdin (ex: somecommand |smartcancel --contains-from-stdin --dry-run).
+  --regex PATTERN              Job names with matching regex pattern will be filtered.
+  --regex-from-stdin           With this option, smartcancel accept's regex patterns from stdin (ex: somecommand |smartcancel --regex-from-stdin --dry-run).
+  --older-than DUR             Only jobs with elapsed time > DUR (e.g., 10m, 2h).
+  --state STATE                Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive. Dependency is the only excpetion which is treated as state.
+  --partition NAME[,NAME...]   Only jobs in these Slurm partitions.
+  --latest                     Pick only the latest matching job (by StartTime or JobID).
 
 Behavior:
   --dry-run                    Show what would be cancelled.
@@ -37,7 +37,7 @@ Other:
   -h, --help                   Show this help.
   --version                    Shows the version of smartslurmcommands.
   --verbose                    Prints the information of at what step the code is and how many jobs did it find for the filter you passed.
-  --debug                      Prints the information of at what step the code  and outputs the command.
+  --debug                      Prints the information of at what step the code and outputs the command.
 EOF
 }
 
@@ -52,7 +52,7 @@ NAME_REGEX=""
 OLDER_THAN=""
 STATE_FILTER=""
 PARTITION_FILTER=""
-# Reason filter is only used when --state dependency is supplied
+# currently reason filter is only used when --state dependency is supplied
 REASON_FILTER=""
 LATEST=false
 DRY=false
@@ -127,19 +127,23 @@ if [[ -n "$NAME_EQ" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_values 2 "$NAME_EQ")"
   log_jobs_count "after --name '$NAME_EQ'" "$CANDIDATES"
 fi
+
 if [[ -n "$NAME_CONTAINS" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "$NAME_CONTAINS")"
   log_jobs_count "after --contains '$NAME_CONTAINS'" "$CANDIDATES"
 fi
+
 if [[ -n "$NAME_REGEX" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_regex 2 "$NAME_REGEX")"
   log_jobs_count "after --regex '$NAME_REGEX'" "$CANDIDATES"
 fi
+
 # Multiple contains patterns from stdin
 if ((${#CONTAINS_JOB_NAMES[@]} > 0)); then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_contains 2 "${CONTAINS_JOB_NAMES[@]}")"
   log_jobs_count "after --contains-from-stdin" "$CANDIDATES"
 fi
+
 # Regex-from-stdin (many patterns, treated as regex alternation)
 if ((${#REGEX_PATTERNS[@]} > 0)); then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_by_field_regex 2 "${REGEX_PATTERNS[@]}")"
@@ -188,7 +192,7 @@ fi
 
 # --- Act
 if [[ -z "$TARGET_IDS" ]]; then
-  log_info "No matching jobs."
+  log_error "No matching jobs."
   exit 0
 fi
 
@@ -222,9 +226,9 @@ fi
 while read -r id; do
   [[ -z "$id" ]] && continue
   if [[ -n "$REASON" ]]; then
-    scancel "$id" || log_warn "Failed to cancel $id"
+    scancel "$id" || log_error "Failed to cancel $id"
   else
-    scancel "$id" || log_warn "Failed to cancel $id"
+    scancel "$id" || log_error "Failed to cancel $id"
   fi
 done <<< "$TARGET_IDS"
 
