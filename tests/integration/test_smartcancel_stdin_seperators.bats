@@ -84,7 +84,7 @@ teardown() {
           --sep "|" \
           --dry-run
   '
-  echo "output is $output"
+  echo "output is: '$output'" >&3
   [ "$status" -eq 0 ]
 
   # foo* jobs
