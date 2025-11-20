@@ -112,6 +112,8 @@ if command -v man >/dev/null 2>&1; then
     NEED_MANPATH_HINT=true
   fi
 fi
+# remove below both lines, once you have man configured.
+NEED_MANPATH_HINT=false
 
 if $NEED_PATH_HINT; then
   cat <<SNIP
