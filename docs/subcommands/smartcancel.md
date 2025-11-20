@@ -28,7 +28,7 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 | Flag | Description | Notes |
 |------|-------------|-------|
 | `--older-than DUR` | Only jobs with elapsed time > `DUR` (e.g. `10m`, `2h`). | — |
-| `--state STATE` | Only jobs in this Slurm state (case-insensitive). Dependency "reason" from `squeue` is also treated as a state. | Examples: `RUNNING`, `PENDING`, `DEPENDENCY`.<br>Job reasons: see Slurm docs. |
+| `--state STATE` | Only jobs in this Slurm state (case-insensitive). Dependency "reason" from `squeue` is also treated as a state. | Examples: `RUNNING`, `PENDING`, `DEPENDENCY`. |
 
 ### Partition Filter
 
