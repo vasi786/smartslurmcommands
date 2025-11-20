@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # Convert Slurm elapsed (%M) to seconds.
 # Supports: D-HH:MM:SS | HH:MM:SS | MM:SS | "0:00" | "N/A" | "-"
 util::elapsed_to_seconds() {
@@ -184,4 +183,44 @@ util::apply_dir_filter_with_fallback() {
 }
 util::version() {
     cat "$SSC_HOME/VERSION"
+}
+util::read_patterns_from_stdin() {
+  # Read patterns from stdin.
+  # Default separator = newline.
+  # If user provides a custom separator, e.g. --sep ';' or '|', then
+  # this function splits using that instead.
+  #
+  # Usage:
+  #   mapfile -t arr < <(util::read_patterns_from_stdin "$SEP")
+  #
+  # If stdin is a TTY → error.
+  # If no patterns → error unless caller handles it.
+  local sep="${1:-$'\n'}"   # default = newline
+  local buf
+
+  # stdin must not be a tty
+  if [[ -t 0 ]]; then
+    echo "error: expecting stdin but got TTY" >&2
+    return 2
+  fi
+
+  # read whole stdin into buf
+  buf="$(cat)"
+  [[ -n "$buf" ]] || { echo "error: no patterns received on stdin" >&2; return 2; }
+
+  # If separator is newline → simple passthrough
+  if [[ "$sep" == $'\n' ]]; then
+    printf "%s\n" "$buf"
+    return 0
+  fi
+
+  # Otherwise split manually
+  # Replace ALL occurrences of $sep with newline
+  # We escape the separator properly for sed
+  local esc_sep
+  esc_sep=$(printf '%s' "$sep" | sed -E 's/[][\.^$*+?(){}|]/\\&/g')
+
+  printf "%s" "$buf" \
+    | sed "s/${esc_sep}/\\
+/g"
 }
