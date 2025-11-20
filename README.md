@@ -1,10 +1,30 @@
 <!-- # smartslurmcommands (ssc) -->
-
 ![image](images/github_banner.png)
 
 smartslurmcommands (SSC) is a slurm command wrapper that provides enhanced slurm utilities with advanced filtering for job discovery and their cancellation (if needed).
 
-## Featured Flags (combine as needed)
+## Table of Contents
+
+- [Installation](#installation)
+- [Featured Flags](##featured-flags)
+- [smartqueue](##smartqueue)
+- [smartcancel](##smartcancel)
+- [mqpwd](##mqpwd)
+- [motivation](#motivation)
+- [License](./LICENSE)
+
+---
+## Installation (recommended)
+
+Run this one-liner to install the latest release:
+
+```bash
+curl -sL https://raw.githubusercontent.com/vasi786/smartslurmcommands/main/install_latest.sh | bash
+```
+
+## Featured Flags
+
+Combine the flags as needed)
 
 | Flag | Description |
 |------|-------------|
