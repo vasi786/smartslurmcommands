@@ -102,12 +102,12 @@ fi
 # Read patterns from stdin if requested
 if $CONTAINS_FROM_STDIN; then
   mapfile -t CONTAINS_JOB_NAMES < <(util::read_patterns_from_stdin "$STDIN_SEP")
-  ((${#CONTAINS_JOB_NAMES[@]} > 0)) || die 2 "--contains-from-stdin received no jobnames."
+  ((${#CONTAINS_JOB_NAMES[@]} > 0)) || die 2 "--contains-from-stdin received no jobnames. Did you pass the correct separator(--sep)?"
 fi
 
 if $REGEX_FROM_STDIN; then
   mapfile -t REGEX_PATTERNS < <(util::read_patterns_from_stdin "$STDIN_SEP")
-  ((${#REGEX_PATTERNS[@]} > 0)) || die 2 "--regex-from-stdin received no patterns."
+  ((${#REGEX_PATTERNS[@]} > 0)) || die 2 "--regex-from-stdin received no patterns. Did you pass the correct separator(--sep)?"
 fi
 
 # Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition for a user (default: current)

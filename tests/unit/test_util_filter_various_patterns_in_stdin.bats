@@ -49,6 +49,7 @@ setup() {
 
     printf "foo|bar|baz" | util::read_patterns_from_stdin "|"
   '
+  echo "output is $output"
   [ "$status" -eq 0 ]
   [ "$output" = $'foo\nbar\nbaz' ]
 }
@@ -67,8 +68,10 @@ setup() {
   run bash -lc '
     source "$SSC_HOME/lib/util.sh"
 
+    sep="$(printf "#|#")"
     printf "one#|#two#|#three" | util::read_patterns_from_stdin "#|#"
   '
+  echo "output is $output"
   [ "$status" -eq 0 ]
   [ "$output" = $'one\ntwo\nthree' ]
 }
