@@ -6,15 +6,15 @@ smartslurmcommands (SSC) is a slurm command wrapper that provides enhanced slurm
 ## Table of Contents
 
 - [Installation](#installation)
-- [Featured Flags](##featured-flags)
-- [smartqueue](##smartqueue)
-- [smartcancel](##smartcancel)
-- [mqpwd](##mqpwd)
+- [Featured Flags](#featured-flags)
+- [smartqueue](#smartqueue)
+- [smartcancel](#smartcancel)
+- [mqpwd](#mqpwd)
 - [motivation](#motivation)
 - [License](./LICENSE)
 
 ---
-## Installation (recommended)
+## Installation
 
 Run this one-liner to install the latest release:
 
