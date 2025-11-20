@@ -27,7 +27,7 @@ smartslurmcommands (SSC) is a slurm command wrapper that provides enhanced slurm
 
  Why stop just viewing the jobs, Do you want to cancel the ones you have viewed? (see below).
 
-## [smartcancel](./docs/subcommands/smartcancel.md) (smart wrapper around scancel)
+## [smartcancel](./docs/subcommands/smartcancel.md)
   This is the command I wanted during my PhD (see Motivation).
   The biggest use case for me was to detect the jobs which are associated with the current working directory (I am in) and use that to fetch the jobs and cancel them.
 
@@ -98,8 +98,8 @@ smartslurmcommands (SSC) is a slurm command wrapper that provides enhanced slurm
     ```
     </details>
 
-## [mqpwd](./docs/subcommands/mqpwd.md) (my-squeue-pwd)
-This command gets the jobs which are related to the current directory which you are in (if no args are passed).
+## [mqpwd](./docs/subcommands/mqpwd.md)
+mqpwd &rarr; mq-squeue-pwd: This command gets the jobs which are related to the current directory which you are in (if no args are passed).
 Same filters which are passed to `smartcancel|smartqueue` can be passed to `mqpwd` to sort the jobs from the queue.
 List of all the implemented filters are detailed [here](./docs/subcommands/mqpwd.md).
 <details>
