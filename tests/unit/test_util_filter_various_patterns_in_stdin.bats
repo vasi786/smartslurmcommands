@@ -49,7 +49,6 @@ setup() {
 
     printf "foo|bar|baz" | util::read_patterns_from_stdin "|"
   '
-  echo "output is: '$output'" >&3
   [ "$status" -eq 0 ]
   [ "$output" = $'foo\nbar\nbaz' ]
 }
@@ -92,7 +91,6 @@ setup() {
 
     printf "foo;bar;" | util::read_patterns_from_stdin ";"
   '
-  echo "output is $output"
   [ "$status" -eq 0 ]
   [ "$output" = $'foo\nbar' ]
 }
