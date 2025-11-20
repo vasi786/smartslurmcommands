@@ -16,24 +16,24 @@ usage() {
   cat <<'EOF'
   Usage: smartqueue [FILTERS]
 
-Filters (combine as needed):
-  --this-dir                   Show jobs whose WorkDir == $PWD or fallback to the job_name found in the CWD.
-  --dir PATH                   Show jobs whose WorkDir == PATH or fallback to the job_name found in the PATH.
-  --name NAME                  Show jobs with exact job name match.
-  --contains SUBSTR            Show jobs with job name contains substring.
-  --contains-from-stdin        With this option, smartqueue accept's substring from stdin (ex: somecommand |smartqueue --contains-from-stdin).
-  --regex PATTERN              Show jobs with job names which matches the provided regex pattern.
-  --regex-from-stdin           With this option, smartqueue accept's regex patterns from stdin (ex: somecommand |smartqueue --regex-from-stdin).
-  --older-than DUR             Show jobs that have elapsed time > DUR (e.g., 10m, 2h).
-  --state STATE                Show jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive. Dependency is the only excpetion which is treated as state.
-  --partition NAME[,NAME...]   Show jobs in these Slurm partitions.
-  --latest                     Show latest job (by StartTime or JobID).
+  Filters (combine as needed):
+    --this-dir                   Show jobs whose WorkDir == $PWD or fallback to the job_name found in the CWD.
+    --dir PATH                   Show jobs whose WorkDir == PATH or fallback to the job_name found in the PATH.
+    --name NAME                  Show jobs with exact job name match.
+    --contains SUBSTR            Show jobs with job name contains substring.
+    --contains-from-stdin        With this option, smartqueue accept's substring from stdin (ex: somecommand |smartqueue --contains-from-stdin).
+    --regex PATTERN              Show jobs with job names which matches the provided regex pattern.
+    --regex-from-stdin           With this option, smartqueue accept's regex patterns from stdin (ex: somecommand |smartqueue --regex-from-stdin).
+    --older-than DUR             Show jobs that have elapsed time > DUR (e.g., 10m, 2h).
+    --state STATE                Show jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive. Dependency is the only excpetion which is treated as state.
+    --partition NAME[,NAME...]   Show jobs in these Slurm partitions.
+    --latest                     Show latest job (by StartTime or JobID).
 
-Other:
-  -h, --help                   Show this help.
-  --version                    Shows the version of smartslurmcommands.
-  --verbose                    Prints the information of at what step the code is and how many jobs did it find for the filter you passed.
-  --debug                      Prints the information of at what step the code and outputs the command.
+  Other:
+    -h, --help                   Show this help.
+    --version                    Shows the version of smartslurmcommands.
+    --verbose                    Prints the information of at what step the code is and how many jobs did it find for the filter you passed.
+    --debug                      Prints the information of at what step the code and outputs the command.
 EOF
 }
 
@@ -58,7 +58,7 @@ SSC_LOG_LEVEL="${SSC_LOG_LEVEL:-none}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --this-dir) THIS_DIR=false; shift ;;
+    --this-dir) THIS_DIR=true; shift ;;
     --dir) DIR_FILTER="$2"; shift 2 ;;
     --name) NAME_EQ="$2"; shift 2 ;;
     --contains) NAME_CONTAINS="$2"; shift 2 ;;
@@ -157,14 +157,19 @@ if [[ -n "$REASON_FILTER" ]]; then
   log_jobs_count "after reason filter '$REASON_FILTER'" "$CANDIDATES"
 fi
 
-# Extract job IDs and print like your `mq` alias
-csv_ids="$(cut -d'|' -f1 <<<"$CANDIDATES" | sed '/^$/d' | paste -sd, -)"
-if [[ -z "$csv_ids" ]]; then
-  echo "No job IDs found after filtering for: $absdir"
-  exit 0
+ids="$(
+ printf '%s\n' "$CANDIDATES" \
+ | awk -F'|' 'NF && $1 ~ /^[0-9]+$/ { print $1 }' \
+ | sort -u
+)"
+
+if [[ -z "$ids" ]]; then
+ echo "No valid job IDs to query." >&2
+ exit 0
 fi
 
+csv_ids="$(printf '%s\n' "$ids" | paste -sd, -)"
 # Same columns as your alias:
 #   %.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R
 require_cmd squeue
-squeue --me -j "$csv_ids" -o "%.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R"
+squeue --me -j "$csv_ids" -o '%.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R'

@@ -133,14 +133,20 @@ if [[ -n "$REASON_FILTER" ]]; then
   CANDIDATES="$(awk -F'|' -v r="$REASON_FILTER" '$7 ~ r' <<<"$CANDIDATES")"
   log_jobs_count "after reason filter '$REASON_FILTER'" "$CANDIDATES"
 fi
-# Extract job IDs and print like your `mq` alias
-csv_ids="$(cut -d'|' -f1 <<<"$CANDIDATES" | sed '/^$/d' | paste -sd, -)"
-if [[ -z "$csv_ids" ]]; then
-  echo "No job IDs found after filtering for: $absdir"
-  exit 0
+
+ids="$(
+ printf '%s\n' "$CANDIDATES" \
+ | awk -F'|' 'NF && $1 ~ /^[0-9]+$/ { print $1 }' \
+ | sort -u
+)"
+
+if [[ -z "$ids" ]]; then
+ echo "No valid job IDs to query." >&2
+ exit 0
 fi
 
+csv_ids="$(printf '%s\n' "$ids" | paste -sd, -)"
 # Same columns as your alias:
 #   %.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R
 require_cmd squeue
-squeue --me -j "$csv_ids" -o "%.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R"
+squeue --me -j "$csv_ids" -o '%.10i %.10P  %35j %.8u %.2t  %.10M [%.10L] %.5m %.5C - %5D %R'
