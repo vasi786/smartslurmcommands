@@ -61,6 +61,7 @@ REASON="$DEFAULT_REASON"
 CONTAINS_FROM_STDIN=false
 REGEX_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
+STDIN_SEP=$'\n'   # default = newline
 declare -a CONTAINS_JOB_NAMES=() # will be used for contains-from-stdin, for taking the multiple inputs from the stdin and treats as part or whole job names
 declare -a REGEX_PATTERNS=() # will be used for regex-from-stdin, for taking the multiple inputs from the stdin and treats as part or whole job names
 SSC_LOG_LEVEL="${SSC_LOG_LEVEL:-none}"
@@ -75,6 +76,7 @@ while [[ $# -gt 0 ]]; do
     --regex) NAME_REGEX="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
     --contains-from-stdin) CONTAINS_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --regex-from-stdin) REGEX_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
+    --sep) STDIN_SEP="$2"; shift 2 ;;
     --older-than) OLDER_THAN="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
     --latest) LATEST=true; STATE_FILTER="RUNNING"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --state) SELECTOR_COUNT=$((SELECTOR_COUNT+1)); args::parse_state "$2"; shift 2 ;;
@@ -97,29 +99,15 @@ if $CONTAINS_FROM_STDIN && $REGEX_FROM_STDIN; then
   die 2 "Cannot combine --contains-from-stdin and --regex-from-stdin in the same call."
 fi
 
-# If user asked to read patterns from stdin, do it now
+# Read patterns from stdin if requested
 if $CONTAINS_FROM_STDIN; then
-  if [[ -t 0 ]]; then
-    die 2 "--contains-from-stdin was given, but stdin is a TTY (no input). Pipe patterns in."
-  fi
-  while IFS= read -r line; do
-    [[ -n "$line" ]] && CONTAINS_JOB_NAMES+=("$line")
-  done
-  if ((${#CONTAINS_JOB_NAMES[@]} == 0)); then
-    die 2 "--contains-from-stdin received no jobnames on stdin."
-  fi
+  mapfile -t CONTAINS_JOB_NAMES < <(util::read_patterns_from_stdin "$STDIN_SEP")
+  ((${#CONTAINS_JOB_NAMES[@]} > 0)) || die 2 "--contains-from-stdin received no jobnames."
 fi
 
 if $REGEX_FROM_STDIN; then
-  if [[ -t 0 ]]; then
-    die 2 "--regex-from-stdin was given, but stdin is a TTY (no input). Pipe patterns in."
-  fi
-  while IFS= read -r line; do
-    [[ -n "$line" ]] && REGEX_PATTERNS+=("$line")
-  done
-  if ((${#REGEX_PATTERNS[@]} == 0)); then
-    die 2 "--regex-from-stdin received no patterns on stdin."
-  fi
+  mapfile -t REGEX_PATTERNS < <(util::read_patterns_from_stdin "$STDIN_SEP")
+  ((${#REGEX_PATTERNS[@]} > 0)) || die 2 "--regex-from-stdin received no patterns."
 fi
 
 # Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition for a user (default: current)
