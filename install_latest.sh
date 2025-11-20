@@ -13,7 +13,7 @@ fi
 echo "📦 Latest release: $LATEST"
 echo "⬇️  Cloning repository..."
 
-git clone --depth 1 --branch "$LATEST" https://github.com/vasi786/smartslurmcommands.git
+git clone --quiet --depth 1 --branch "$LATEST" https://github.com/vasi786/smartslurmcommands.git
 
 echo "📂 Entering scripts directory..."
 cd smartslurmcommands/scripts
