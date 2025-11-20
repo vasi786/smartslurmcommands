@@ -1,6 +1,7 @@
 <!-- # smartslurmcommands (ssc) -->
 
 ![image](images/github_banner.png)
+
 smartslurmcommands (SSC) is a slurm command wrapper that provides enhanced slurm utilities with advanced filtering for job discovery and their cancellation (if needed).
 
 ## Featured Flags (combine as needed)
