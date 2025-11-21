@@ -24,7 +24,7 @@ curl -sL https://raw.githubusercontent.com/vasi786/smartslurmcommands/main/insta
 
 ## Featured Flags
 
-Combine the flags as needed)
+Combine the flags as needed.
 
 | Flag | Description |
 |------|-------------|
@@ -34,8 +34,8 @@ Combine the flags as needed)
 | `--older-than DUR` | Fetch jobs with elapsed time greater than `DUR` (e.g., `10m`, `2h`). |
 | `--contains SUBSTR` | Fetch job names containing the specified substring of a jobname. |
 | `--regex PATTERN` | Show jobs with job names which matches the provided regex pattern. |
-| <code>somecommand &#124; smartcancel --contains-from-stdin</code> | Fetch job names containing substrings (of a jobname) passed through STDIN. |
-| <code>somecommand &#124; smartcancel --regex-from-stdin</code> | Fetch job names matching regex patterns passed through STDIN. |
+| `--contains-from-stdin` | Read one or more regex patterns from STDIN and match job names against them. |
+| `--regex-from-stdin` | Read one or more regex patterns from STDIN and match job names against them. |
 | `--dry-run` | In case of `smartcancel`, this flag will show the jobs that will be cancelled. |
 
 
