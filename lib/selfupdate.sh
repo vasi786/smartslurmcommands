@@ -1,3 +1,7 @@
+SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
+source "$SSC_HOME/lib/core.sh"
+source "$SSC_HOME/lib/util.sh"
+
 ssc::self_update() {
     require_cmd curl
     require_cmd tar
@@ -10,6 +14,7 @@ ssc::self_update() {
     echo "Checking latest release..."
     new="$(curl -s https://api.github.com/repos/vasi786/smartslurmcommands/releases/latest \
         | grep -Po '"tag_name":\s*"\K[^"]+')"
+    new="${new#v}"
 
     if [[ -z "$new" ]]; then
         echo "ERROR: Could not fetch latest version." >&2
@@ -23,7 +28,7 @@ ssc::self_update() {
         return 0
     fi
 
-    tarball="https://github.com/vasi786/smartslurmcommands/releases/download/${new}/smartslurmcommands-${new}.tar.gz"
+    tarball="https://github.com/vasi786/smartslurmcommands/releases/download/v${new}/smartslurmcommands-${new}.tar.gz"
 
     echo "Downloading $tarball"
     tmp="$(mktemp -d)"
