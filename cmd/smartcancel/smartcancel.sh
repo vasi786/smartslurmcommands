@@ -11,6 +11,7 @@ source "$SSC_HOME/lib/log.sh";
 source "$SSC_HOME/lib/util.sh"
 source "$SSC_HOME/lib/args.sh"
 source "$SSC_HOME/lib/slurm.sh"
+source "$SSC_HOME/lib/io.sh"
 
 usage() {
   cat <<'EOF'
