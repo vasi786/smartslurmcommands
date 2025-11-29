@@ -69,6 +69,7 @@ ssc::self_update() {
   if [[ -f "$SSC_HOME/VERSION" ]]; then
     current="$(cat "$SSC_HOME/VERSION" 2>/dev/null || echo "(unknown)")"
   fi
+  current="v${current}"
 
   log_info "Current version: $current"
   log_info "Target version : $target_tag"
