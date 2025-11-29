@@ -4,6 +4,7 @@
 SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
 source "$SSC_HOME/lib/util.sh"
+source "$SSC_HOME/lib/log.sh"
 
 
 # GitHub repo to pull releases from (can be overridden by env)

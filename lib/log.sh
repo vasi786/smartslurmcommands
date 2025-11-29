@@ -25,6 +25,11 @@ log_info_prefix() {
   printf '%sINFO:%s' "$LOG_CYAN" "$LOG_YELLOW"
 }
 
+log_debug() { log_debug_prefix; printf " %s\n" "$*"; }
+log_info()  { log_info_prefix;  printf " %s\n" "$*"; }
+log_warn()  { log_warn_prefix;  printf " %s\n" "$*"; }
+
+
 log_jobs_count() {
   local label="$1"
   local text="$2"
