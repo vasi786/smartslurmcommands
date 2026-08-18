@@ -55,6 +55,8 @@ See the [official `squeue` documentation](https://slurm.schedmd.com/squeue.html)
 | Flag | Description | Notes |
 |------|-------------|-------|
 | `--older-than DUR` | Only jobs with elapsed time > `DUR` (e.g. `10m`, `2h`). | — |
+| `--younger-than DUR` | Only jobs with elapsed time < `DUR` (e.g. `10m`, `2h`). | Strict comparison; equality is excluded. |
+| `--time-left DUR` | Only jobs with remaining time < `DUR` (e.g. `30m`, `2h`). | `NOT_SET`, `UNLIMITED`, and other non-numeric values are excluded. |
 | `--state STATE` | Only jobs in this Slurm state (case-insensitive). Dependency "reason" from `squeue` is treated as a state. | Examples: `RUNNING`, `PENDING`, `DEPENDENCY`. |
 
 ### Partition Filter

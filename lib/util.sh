@@ -3,7 +3,16 @@
 # Supports: D-HH:MM:SS | HH:MM:SS | MM:SS | "0:00" | "N/A" | "-"
 util::elapsed_to_seconds() {
   local e="$1"
-  [[ -z "$e" || "$e" == "N/A" || "$e" == "-" ]] && { echo 0; return; }
+  local output_var="${2:-}"
+  local total=0
+  if [[ -z "$e" || "$e" == "N/A" || "$e" == "-" ]]; then
+    if [[ -n "$output_var" ]]; then
+      printf -v "$output_var" '%d' 0
+    else
+      printf '0\n'
+    fi
+    return 0
+  fi
 
   local d=0 h=0 m=0 s=0 rest
   if [[ "$e" == *-*:*:* ]]; then
@@ -16,29 +25,50 @@ util::elapsed_to_seconds() {
   fi
   # force base-10 to ignore leading zeros
   d=$((10#$d)); h=$((10#$h)); m=$((10#$m)); s=$((10#$s))
-  echo $(( d*86400 + h*3600 + m*60 + s ))
+  total=$(( d*86400 + h*3600 + m*60 + s ))
+  if [[ -n "$output_var" ]]; then
+    printf -v "$output_var" '%d' "$total"
+  else
+    printf '%d\n' "$total"
+  fi
+}
+
+# Convert a user-facing duration such as 30m, 2h, 3d, or 600 to seconds.
+util::duration_to_seconds() {
+  local duration="$1"
+  local output_var="${2:-}"
+  [[ "$duration" =~ ^[0-9]+[smhd]?$ ]] || {
+    printf 'error: invalid duration: %s\n' "$duration" >&2
+    return 2
+  }
+
+  local unit="${duration: -1}" number total
+  case "$unit" in
+    s|m|h|d) number="${duration%?}" ;;
+    *) number="$duration"; unit="s" ;;
+  esac
+  number=$((10#$number))
+
+  case "$unit" in
+    s) total=$number ;;
+    m) total=$((number * 60)) ;;
+    h) total=$((number * 3600)) ;;
+    d) total=$((number * 86400)) ;;
+  esac
+
+  if [[ -n "$output_var" ]]; then
+    printf -v "$output_var" '%d' "$total"
+  else
+    printf '%d\n' "$total"
+  fi
 }
 
 # Return 0 (true) if elapsed > threshold (e.g., 10m, 2h, 3d, 600s)
 util::older_than() {
   local elapsed="$1" thresh="$2"
-  local es ts unit num
-  es="$(util::elapsed_to_seconds "$elapsed")"
-
-  unit="${thresh: -1}"
-  case "$unit" in
-    s|m|h|d) num="${thresh%?}";;
-    *)       num="$thresh"; unit="s";;   # bare number = seconds
-  esac
-  # coerce to base-10
-  num=$((10#$num))
-
-  case "$unit" in
-    s) ts=$(( num ));;
-    m) ts=$(( num * 60 ));;
-    h) ts=$(( num * 3600 ));;
-    d) ts=$(( num * 86400 ));;
-  esac
+  local es ts
+  util::elapsed_to_seconds "$elapsed" es || return
+  util::duration_to_seconds "$thresh" ts || return
 
   [[ "$es" -gt "$ts" ]]
 }
@@ -108,6 +138,37 @@ util::filter_candidates_older_than() {
     BEGIN { limit=duration_seconds(threshold) }
     NF && elapsed_seconds($5) > limit { print }
   '
+}
+
+# Keep complete records whose Slurm duration in FIELD is strictly less than
+# THRESHOLD. Non-numeric values such as NOT_SET, UNLIMITED, N/A, and INVALID
+# are excluded so an unknown duration is never treated as zero.
+util::filter_candidates_by_time_less_than() {
+  local field="${1:?need field number}"
+  local threshold="${2:?need threshold}"
+  local limit
+  util::duration_to_seconds "$threshold" limit || return
+
+  local line value seconds
+  local -a fields=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    IFS='|' read -r -a fields <<<"$line"
+    value="${fields[field-1]:-}"
+    [[ "$value" =~ ^(([0-9]+-)?[0-9]+:[0-9]{2}:[0-9]{2}|[0-9]+:[0-9]{2})$ ]] || continue
+    util::elapsed_to_seconds "$value" seconds
+    if (( seconds < limit )); then
+      printf '%s\n' "$line"
+    fi
+  done
+}
+
+util::filter_candidates_younger_than() {
+  util::filter_candidates_by_time_less_than 5 "${1:?need threshold}"
+}
+
+util::filter_candidates_time_left() {
+  util::filter_candidates_by_time_less_than 9 "${1:?need threshold}"
 }
 
 # Generic: keep rows whose field f matches any value from the first input.

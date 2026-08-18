@@ -28,6 +28,8 @@ mqpwd [PATH] [FILTERS]
 | Flag | Description | Notes |
 |------|-------------|-------|
 | `--older-than DUR` | show only jobs with elapsed time > `DUR` (e.g. `10m`, `2h`). | — |
+| `--younger-than DUR` | show only jobs with elapsed time < `DUR` (e.g. `10m`, `2h`). | Strict comparison; equality is excluded. |
+| `--time-left DUR` | show only jobs with remaining time < `DUR` (e.g. `30m`, `2h`). | `NOT_SET`, `UNLIMITED`, and other non-numeric values are excluded. |
 | `--state STATE` | show only jobs in this Slurm state (case-insensitive). Dependency "reason" from `squeue` is also treated as a state. | Examples: `RUNNING`, `PENDING`, `DEPENDENCY`.<br>Job reasons: see Slurm docs. |
 
 ### Partition Filter

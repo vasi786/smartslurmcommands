@@ -27,6 +27,8 @@ usage() {
     --regex PATTERN              Show jobs with job names which matches the provided regex pattern.
     --regex-from-stdin           With this option, smartqueue accept's regex patterns from stdin (ex: somecommand |smartqueue --regex-from-stdin).
     --older-than DUR             Show jobs that have elapsed time > DUR (e.g., 10m, 2h).
+    --younger-than DUR           Show jobs that have elapsed time < DUR (e.g., 10m, 2h).
+    --time-left DUR              Show jobs that have remaining time < DUR (e.g., 30m, 2h).
     --state STATE                Show jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive. Dependency is the only excpetion which is treated as state.
     --partition NAME[,NAME...]   Show jobs in these Slurm partitions.
     --latest                     Show the latest matching job. Uses StartTime when all
@@ -50,6 +52,8 @@ NAME_EQ=""
 NAME_CONTAINS=""
 NAME_REGEX=""
 OLDER_THAN=""
+YOUNGER_THAN=""
+TIME_LEFT=""
 STATE_FILTER=""
 PARTITION_FILTER=""
 # currently reason filter is only used when --state dependency is supplied
@@ -73,6 +77,8 @@ while [[ $# -gt 0 ]]; do
     --regex-from-stdin) REGEX_FROM_STDIN=true; shift ;;
     --sep) STDIN_SEP="$2"; shift 2 ;;
     --older-than) OLDER_THAN="$2"; shift 2 ;;
+    --younger-than) YOUNGER_THAN="$2"; shift 2 ;;
+    --time-left) TIME_LEFT="$2"; shift 2 ;;
     --latest) LATEST=true; shift ;;
     --state)  args::parse_state "$2"; shift 2 ;;
     --partition) PARTITION_FILTER="$2";  shift 2 ;;
@@ -103,7 +109,7 @@ if $REGEX_FROM_STDIN; then
   ((${#REGEX_PATTERNS[@]} > 0)) || die 2 "--regex-from-stdin received no patterns. Did you pass the correct separator(--sep)?"
 fi
 
-# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition for a user (default: current)
+# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition|TimeLeft for a user (default: current)
 SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
 CANDIDATES="$SQUEUE_CACHE"
 
@@ -151,6 +157,16 @@ fi
 if [[ -n "$OLDER_THAN" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_older_than "$OLDER_THAN")"
   log_jobs_count "after --older-than '$OLDER_THAN'" "$CANDIDATES"
+fi
+
+if [[ -n "$YOUNGER_THAN" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_younger_than "$YOUNGER_THAN")"
+  log_jobs_count "after --younger-than '$YOUNGER_THAN'" "$CANDIDATES"
+fi
+
+if [[ -n "$TIME_LEFT" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_time_left "$TIME_LEFT")"
+  log_jobs_count "after --time-left '$TIME_LEFT'" "$CANDIDATES"
 fi
 
 # Latest only
