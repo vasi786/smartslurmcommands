@@ -13,29 +13,42 @@ DEFAULT_CONFIG_PREFIX="${HOME}/.config"
 PREFIX="${1:-$DEFAULT_PREFIX}"
 CONFIG_PREFIX="${2:-$DEFAULT_CONFIG_PREFIX}"
 BIN_DIR="${PREFIX}/bin"
+SHARE_PARENT="${PREFIX}/share"
 SHARE_DIR="${PREFIX}/share/smartslurmcommands"
 MAN_DIR="${PREFIX}/share/man/man1"
 USER_CONFIG_DIR="${CONFIG_PREFIX}/smartslurmcommands"
 USER_CONFIG_FILE="$USER_CONFIG_DIR/config"
 
 # ---------- Resolve repo root ----------
-_resolve_realpath() {
-  local p="$1"
-  if command -v readlink >/dev/null 2>&1; then
-    # GNU readlink -f (Linux); macOS lacks -f so fall back to Python
-    local r
-    if r="$(readlink -f "$p" 2>/dev/null)"; then
-      printf '%s\n' "$r"
-      return 0
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+
+# Build the replacement shared tree beside the live tree, then rename it into
+# place. If anything fails after the swap, the EXIT trap restores the previous
+# shared tree.
+STAGE_DIR=""
+BACKUP_DIR=""
+SHARE_SWAPPED=false
+INSTALL_COMPLETE=false
+
+_install_cleanup() {
+  local rc=$?
+  trap - EXIT
+
+  if ! $INSTALL_COMPLETE; then
+    if [[ -n "$STAGE_DIR" && -d "$STAGE_DIR" ]]; then
+      rm -rf -- "$STAGE_DIR"
+    fi
+    if $SHARE_SWAPPED; then
+      rm -rf -- "$SHARE_DIR"
+    fi
+    if [[ -n "$BACKUP_DIR" && -d "$BACKUP_DIR" ]]; then
+      mv "$BACKUP_DIR" "$SHARE_DIR"
     fi
   fi
-  python3 - <<'PY' "$p"
-import os,sys
-print(os.path.realpath(sys.argv[1]))
-PY
+
+  exit "$rc"
 }
-SELF="$(_resolve_realpath "$0")"
-ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
+trap _install_cleanup EXIT
 
 echo "==> Installing smartslurmcommands (user mode)"
 echo "    PREFIX   : $PREFIX"
@@ -45,7 +58,7 @@ echo "    MAN_DIR  : $MAN_DIR"
 echo
 
 # ---------- Create dirs ----------
-mkdir -p "$BIN_DIR" "$SHARE_DIR" "$MAN_DIR" "$USER_CONFIG_DIR"
+mkdir -p "$BIN_DIR" "$SHARE_PARENT" "$MAN_DIR" "$USER_CONFIG_DIR"
 
 # ---------- Create config file --------------
 if [[ ! -f "$USER_CONFIG_FILE" ]]; then
@@ -57,19 +70,46 @@ else
   echo ""
 fi
 
-# ---------- Copy shared assets to SHARE_DIR ----------
-echo "==> Copying shared assets"
-# Clean previous install for a fresh state (only our tree)
-if [[ -d "$SHARE_DIR" ]]; then
-  rm -rf "$SHARE_DIR"
-fi
-mkdir -p "$SHARE_DIR"
+# ---------- Build shared assets in a staging directory ----------
+echo "==> Staging shared assets"
+STAGE_DIR="$(mktemp -d "$SHARE_PARENT/.smartslurmcommands.new.XXXXXX")"
 for d in lib cmd etc completions man docs; do
-  [[ -d "$ROOT/$d" ]] && cp -R "$ROOT/$d" "$SHARE_DIR/"
+  [[ -d "$ROOT/$d" ]] && cp -R "$ROOT/$d" "$STAGE_DIR/"
 done
 
-# copy the VERSION info to the .local/share/smartslurmcommands
-cp "$ROOT"/VERSION "$SHARE_DIR"
+# Copy semantic version and, when available, exact source revision metadata.
+cp "$ROOT/VERSION" "$STAGE_DIR/VERSION"
+BUILD_COMMIT_VALUE="${SSC_BUILD_COMMIT:-}"
+if [[ -z "$BUILD_COMMIT_VALUE" && -f "$ROOT/BUILD_COMMIT" ]]; then
+  BUILD_COMMIT_VALUE="$(tr -d '[:space:]' <"$ROOT/BUILD_COMMIT")"
+fi
+if [[ -z "$BUILD_COMMIT_VALUE" && -d "$ROOT/.git" ]] && command -v git >/dev/null 2>&1; then
+  if [[ -z "$(git -C "$ROOT" status --porcelain 2>/dev/null || true)" ]]; then
+    BUILD_COMMIT_VALUE="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
+  fi
+fi
+if [[ -n "$BUILD_COMMIT_VALUE" ]]; then
+  [[ "$BUILD_COMMIT_VALUE" =~ ^[0-9a-f]{40}$ ]] || {
+    echo "Invalid SSC_BUILD_COMMIT: expected a full 40-character commit SHA." >&2
+    exit 2
+  }
+  printf '%s\n' "$BUILD_COMMIT_VALUE" >"$STAGE_DIR/BUILD_COMMIT"
+fi
+
+[[ -f "$STAGE_DIR/VERSION" && -f "$STAGE_DIR/lib/selfupdate.sh" && -f "$STAGE_DIR/cmd/ssc/ssc.sh" ]] || {
+  echo "Staged installation is missing required files." >&2
+  exit 1
+}
+
+# ---------- Atomically replace the shared tree ----------
+if [[ -e "$SHARE_DIR" ]]; then
+  BACKUP_DIR="$(mktemp -d "$SHARE_PARENT/.smartslurmcommands.old.XXXXXX")"
+  rmdir "$BACKUP_DIR"
+  mv "$SHARE_DIR" "$BACKUP_DIR"
+fi
+mv "$STAGE_DIR" "$SHARE_DIR"
+STAGE_DIR=""
+SHARE_SWAPPED=true
 
 # Also copy man pages into per-user man dir for 'man' to find
 if [[ -d "$ROOT/man" ]]; then
@@ -162,3 +202,9 @@ if [[ -x "$BIN_DIR/smartcancel" ]]; then
 fi
 
 echo "Installation complete into $PREFIX."
+
+INSTALL_COMPLETE=true
+if [[ -n "$BACKUP_DIR" && -d "$BACKUP_DIR" ]]; then
+  rm -rf -- "$BACKUP_DIR"
+fi
+trap - EXIT

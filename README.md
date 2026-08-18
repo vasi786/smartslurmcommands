@@ -25,28 +25,36 @@ curl -sL https://raw.githubusercontent.com/vasi786/smartslurmcommands/main/insta
 
 ## Updating
 
-Use `ssc --update` to fetch and install the latest GitHub release:
+Use `ssc --update` to fetch and install the latest commit from the canonical GitHub `main` branch:
 
 ```bash
 ssc --update
 ```
 
-Use `--tag` to install a specific release tag:
+This includes commits made after the latest formal release; a new tag is not required for every fix.
+
+Use `--tag` to install a specific tagged revision instead:
 
 ```bash
 ssc --update --tag v0.2.5
 ```
 
-The tag must exist in the [`vasi786/smartslurmcommands` releases](https://github.com/vasi786/smartslurmcommands/releases), including its `v` prefix when the release tag has one.
-Without `--tag`, `ssc` queries the latest GitHub release and does nothing when that version is already installed.
-With `--tag`, `ssc` installs the requested release even when that means reinstalling the current version or moving to an older version.
-The updater downloads the tagged source archive and runs the normal user-space installer, which installs to `~/.local` and preserves an existing configuration file.
-It requires `curl` and `tar`, and a network connection to GitHub.
+`Version` remains the semantic release version from `VERSION`, while `Commit` identifies the exact installed source revision.
+The updater stores the full installed SHA in `~/.local/share/smartslurmcommands/BUILD_COMMIT` (or the equivalent shared directory for a custom installation prefix).
+Legacy installations without that file perform one update and initialize commit tracking automatically.
+
+The updater resolves `main` or the requested tag to a commit, downloads that exact commit archive, validates it, and runs the normal installer.
+The shared installation tree is staged and swapped into place, with the previous tree restored if a later installation step fails.
+Existing configuration is preserved.
+The updater requires `curl` and `tar`; it does not require Git, `gh`, `jq`, Python, or Node.js.
+Updates remain unattended, matching the existing updater behavior.
 
 ```bash
 ssc --update --help   # Show updater-specific help.
 ssc --version         # Show the installed version.
 ```
+
+See the complete [`ssc` update documentation](./docs/subcommands/ssc.md) for network requests, error behavior, revision metadata, and examples.
 
 ## Featured Flags
 

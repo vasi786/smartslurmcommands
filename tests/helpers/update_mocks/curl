@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+output_file=""
+url=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -o)
+      output_file="$2"
+      shift 2
+      ;;
+    -H|--connect-timeout|--max-time|--retry)
+      shift 2
+      ;;
+    -*)
+      shift
+      ;;
+    *)
+      url="$1"
+      shift
+      ;;
+  esac
+done
+
+[[ -n "$url" ]] || exit 2
+if [[ -n "${MOCK_CURL_LOG:-}" ]]; then
+  printf '%s\n' "$url" >>"$MOCK_CURL_LOG"
+fi
+
+case "$url" in
+  */compare/*)
+    [[ "${MOCK_COMPARE_FAIL:-false}" != "true" ]] || exit 22
+    [[ -f "${MOCK_COMPARE_JSON:-}" ]] || exit 22
+    cat "$MOCK_COMPARE_JSON"
+    ;;
+  */commits/*)
+    [[ "${MOCK_COMMIT_FAIL:-false}" != "true" ]] || exit 22
+    [[ -f "${MOCK_COMMIT_JSON:-}" ]] || exit 22
+    cat "$MOCK_COMMIT_JSON"
+    ;;
+  */tarball/*)
+    [[ "${MOCK_ARCHIVE_FAIL:-false}" != "true" ]] || exit 22
+    [[ -n "$output_file" && -f "${MOCK_UPDATE_ARCHIVE:-}" ]] || exit 22
+    cp "$MOCK_UPDATE_ARCHIVE" "$output_file"
+    ;;
+  *)
+    exit 22
+    ;;
+esac

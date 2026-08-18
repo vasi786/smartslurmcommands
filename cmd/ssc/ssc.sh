@@ -19,9 +19,9 @@ Usage: ssc [OPTIONS]
 
 Options:
   --update [--tag TAG]         Update smartslurmcommands.
-                               Without --tag, fetches and installs the latest
-                               GitHub release. With --tag, installs that
-                               specific version (e.g. v0.2.1).
+                               Without --tag, installs the latest commit from
+                               GitHub main. With --tag, installs that specific
+                               tagged revision (e.g. v0.2.5).
 
   --version                    Show the installed smartslurmcommands version.
   -h, --help                   Show this help.

@@ -1,0 +1,42 @@
+.TH SSC 1
+.SH NAME
+ssc \- report version information and update SmartSlurmCommands
+.SH SYNOPSIS
+.B ssc
+.B --version
+.br
+.B ssc
+.B --update
+.RI [ --tag " " TAG ]
+.SH DESCRIPTION
+.B ssc --update
+resolves and installs the latest commit from the canonical GitHub main branch.
+The semantic version may remain unchanged when newer unreleased commits exist.
+.PP
+.B ssc --update --tag
+resolves and installs a specific tagged revision.
+.SH REVISION TRACKING
+VERSION stores the semantic release version.
+BUILD_COMMIT stores the full commit SHA of the exact installed source.
+Legacy installations without BUILD_COMMIT remain upgradeable and initialize it on the next update.
+.PP
+.B ssc --version
+continues to print only the semantic version for compatibility.
+.SH NETWORK
+The updater queries the GitHub commit endpoint once.
+When the installed commit is known and differs, it may also query the compare endpoint for a concise summary.
+It downloads the archive for the resolved commit SHA, avoiding a race with a moving main branch.
+.SH SAFETY
+The archive is downloaded and validated in a temporary directory before installation.
+The installer stages the replacement shared tree and restores the previous tree if a later installation step fails.
+Update failures return nonzero and are not reported as an up-to-date state.
+.SH FILES
+.TP
+.I PREFIX/share/smartslurmcommands/VERSION
+Semantic release version.
+.TP
+.I PREFIX/share/smartslurmcommands/BUILD_COMMIT
+Exact installed source revision.
+.SH DEPENDENCIES
+Bash, curl, tar, and standard Unix tools.
+Git, gh, jq, Python, and Node.js are not required.
