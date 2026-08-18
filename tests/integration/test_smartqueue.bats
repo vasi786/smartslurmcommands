@@ -124,3 +124,38 @@ teardown() {
   [ "$(wc -l < "$count_file" | tr -d ' ')" -eq 2 ]
   rm -f "$count_file"
 }
+
+@test "smartqueue delegates native squeue options unchanged in one call" {
+  count_file="$(mktemp)"
+  args_file="$(mktemp)"
+  : > "$count_file"
+  : > "$args_file"
+
+  run env MOCK_SQUEUE_COUNT_FILE="$count_file" \
+    MOCK_SQUEUE_ARGS_FILE="$args_file" bash -lc \
+    '"$SSC_HOME/cmd/smartqueue/smartqueue.sh" -u alice -t RUNNING --sort=-t'
+
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$count_file" | tr -d ' ')" -eq 1 ]
+  [ "$(cat "$args_file")" = $'5\t-u\talice\t-t\tRUNNING\t--sort=-t' ]
+  rm -f "$count_file" "$args_file"
+}
+
+@test "smartqueue delimiter forces native mode for an overlapping option" {
+  args_file="$(mktemp)"
+  : > "$args_file"
+
+  run env MOCK_SQUEUE_ARGS_FILE="$args_file" bash -lc \
+    '"$SSC_HOME/cmd/smartqueue/smartqueue.sh" -- --partition rome'
+
+  [ "$status" -eq 0 ]
+  [ "$(cat "$args_file")" = $'2\t--partition\trome' ]
+  rm -f "$args_file"
+}
+
+@test "smartqueue preserves the native squeue exit status" {
+  run env MOCK_SQUEUE_EXIT_STATUS=42 bash -lc \
+    '"$SSC_HOME/cmd/smartqueue/smartqueue.sh" --sort=-t'
+
+  [ "$status" -eq 42 ]
+}
