@@ -115,7 +115,7 @@ Combine the flags as needed.
     ```
     [user@int4 20_pq_charmmR1_bigger_box_20nm_with_Lysines]$ mq
         JOBID  PARTITION  NAME                                    USER ST        TIME [ TIME_LEFT] MIN_M  CPUS - NODES NODELIST(REASON)
-     15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
+     15858563      genoa  20_pq_with_Lys_AR1                    user PD        0:00 [3-00:00:00]  100G   384 - 2     (Dependency)
      15858314      genoa  20_pq_with_Lys_CR1                    user PD        0:00 [5-00:00:00]  100G   384 - 2     (Dependency)
      15819623      genoa  pex13_nterminal_10copies              user  R    23:38:52 [4-00:21:08]  100G   960 - 5     tcn[1086-1089,1101]
      15858313      genoa  20_pq_with_Lys_CR1                    user  R  3-05:33:30 [1-18:26:30]  100G   384 - 2     tcn[549,594]
