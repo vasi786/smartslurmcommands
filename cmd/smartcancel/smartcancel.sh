@@ -115,8 +115,16 @@ if $REGEX_FROM_STDIN; then
   ((${#REGEX_PATTERNS[@]} > 0)) || die 2 "--regex-from-stdin received no patterns. Did you pass the correct separator(--sep)?"
 fi
 
-# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition for a user (default: current)
-SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
+# Fetch dependency data only when the configured policy can use it. When it is
+# enabled, job records and dependencies still come from one scheduler snapshot.
+DEPENDENCY_CACHE=""
+if $INCLUDE_DEPENDENTS; then
+  SQUEUE_SNAPSHOT="$(slurm::squeue_lines_with_dependencies "$STATE_FILTER")"
+  SQUEUE_CACHE="$(awk -F'|' 'BEGIN {OFS="|"} NF {print $1,$2,$3,$4,$5,$6,$7,$8}' <<<"$SQUEUE_SNAPSHOT")"
+  DEPENDENCY_CACHE="$(awk -F'|' 'NF {print $1 "|" $9}' <<<"$SQUEUE_SNAPSHOT")"
+else
+  SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
+fi
 CANDIDATES="$SQUEUE_CACHE"
 
 if $THIS_DIR || [[ -n "$DIR_FILTER" ]]; then
@@ -182,7 +190,7 @@ fi
 FINAL_IDS="$(cut -d'|' -f1 <<<"$CANDIDATES" | sed '/^$/d' | sort -u)"
 if [[ -n "$FINAL_IDS" ]] && $INCLUDE_DEPENDENTS; then
   before_count="$(wc -l <<<"$FINAL_IDS" | tr -d ' ')"
-  FINAL_IDS="$(expand_with_dependents "$SQUEUE_CACHE" "$FINAL_IDS")"
+  FINAL_IDS="$(slurm::expand_with_dependents "$DEPENDENCY_CACHE" "$FINAL_IDS")"
   after_count="$(wc -l <<<"$FINAL_IDS" | tr -d ' ')"
   if (( after_count > before_count )); then
     echo "Info: included $((after_count - before_count)) dependent job(s) in the cancellation preview." >&2

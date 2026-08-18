@@ -10,47 +10,50 @@ slurm::squeue_lines() {
   log_run_capture "slurm::squeue_lines" squeue "${args[@]}"
 }
 
-# Collect jobs that depend on any of the target IDs (reverse dependency walk).
-# Args:
-#   $1 = squeue cache lines "JobID|JobName|State|WorkDir|Elapsed|StartTime"
-#   $2 = newline-separated target job IDs
-slurm::collect_dependents() {
-  require_cmd scontrol
-  local squeue_cache="$1" targets="$2"
-  local new=""
-  # all job ids from cache
-  while IFS='|' read -r jid _; do
-    [[ -z "$jid" ]] && continue
-    # Dependency=afterok:123,456;afterany:789
-    local dep
-    dep="$(scontrol show job -o "$jid" 2>/dev/null \
-      | sed -n 's/^.*[[:space:]]Dependency=\([^[:space:]]*\).*$/\1/p')"
-    [[ -n "$dep" ]] || dep="$(scontrol show job -o "$jid" 2>/dev/null \
-      | sed -n 's/^Dependency=\([^[:space:]]*\).*$/\1/p')"
-    [[ -z "$dep" ]] && continue
-    # Normalize separators to newlines for easy matching
-    local flat="${dep//[,;:]/$'\n'}"
-    while read -r tid; do
-      [[ -z "$tid" ]] && continue
-      if sed -E 's/\([^)]*\)$//' <<<"$flat" | grep -qx "$tid"; then
-        new+="$jid"$'\n'
-        break
-      fi
-    done <<< "$targets"
-  done <<< "$squeue_cache"
-
-  printf "%s" "$new" | sed '/^$/d' | sort -u
+# Return the normal eight job fields plus a ninth Dependency field. This keeps
+# job and dependency data in one scheduler snapshot without changing the
+# canonical eight-field records used by filters.
+slurm::squeue_lines_with_dependencies() {
+  require_cmd squeue
+  local state="${1:-}" user="${2:-$(current_user)}"
+  local args=(-h -o "%i|%j|%T|%Z|%M|%S|%R|%P|%E" -u "$user")
+  [[ -n "$state" ]] && args+=(-t "$state")
+  log_run_capture "slurm::squeue_lines_with_dependencies" squeue "${args[@]}"
 }
-# add dependency jobs to the target list for canceling
-expand_with_dependents() {
-  local cache="$1" ids="$2" added next
-  while :; do
-    added="$(slurm::collect_dependents "$cache" "$ids")"
-    next="$(printf "%s\n%s\n" "$ids" "$added" | sed '/^$/d' | sort -u)"
-    [[ "$next" == "$ids" ]] && break
-    ids="$next"
-  done
-  printf "%s\n" "$ids"
+
+# Expand newline-separated target IDs through a JobID|Dependency snapshot.
+# The fixed-point traversal is entirely local and preserves recursive behavior.
+slurm::expand_with_dependents() {
+  local dependency_lines="$1" targets="$2"
+  awk -F'|' '
+    NR == FNR { if ($1 != "") selected[$1]=1; next }
+    NF >= 2 {
+      count++
+      ids[count]=$1
+      dependencies[count]=$2
+    }
+    END {
+      changed=1
+      while (changed) {
+        changed=0
+        for (i=1; i<=count; i++) {
+          if (ids[i] in selected) continue
+          dependency=dependencies[i]
+          gsub(/\([^)]*\)/, "", dependency)
+          gsub(/[,:;?]/, " ", dependency)
+          part_count=split(dependency, parts, /[[:space:]]+/)
+          for (part=1; part<=part_count; part++) {
+            if (parts[part] in selected) {
+              selected[ids[i]]=1
+              changed=1
+              break
+            }
+          }
+        }
+      }
+      for (id in selected) print id
+    }
+  ' <(printf '%s\n' "$targets") <(printf '%s\n' "$dependency_lines") | sort -u
 }
 
 # squeue lines (JobID|JobName|State|WorkDir|Elapsed|StartTime) for given job names (current user).

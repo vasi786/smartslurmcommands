@@ -1,5 +1,8 @@
 # tests/helpers/slurm_mocks/scancel
 #!/usr/bin/env bash
 # record cancels instead of executing
+if [[ -n "${MOCK_SCANCEL_COUNT_FILE:-}" ]]; then
+  printf '1\n' >> "$MOCK_SCANCEL_COUNT_FILE"
+fi
 echo "MOCK scancel: $*" >&2
 exit 0

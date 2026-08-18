@@ -1,5 +1,8 @@
 # tests/helpers/slurm_mocks/scontrol
 #!/usr/bin/env bash
+if [[ -n "${MOCK_SCONTROL_COUNT_FILE:-}" ]]; then
+  printf '1\n' >> "$MOCK_SCONTROL_COUNT_FILE"
+fi
 # Dependency graph enabled explicitly by tests:
 #   1001 -> 1002, 1003; 1002 -> 1582 (recursive chain)
 #   1583 -> 1022

@@ -58,3 +58,14 @@ teardown() {
     [[ "$output" =~ MOCK\ scancel:\ $id ]]
   done
 }
+
+@test "dependency expansion uses one squeue snapshot and no per-job scontrol calls" {
+  counts="$(mktemp -d)"
+  run env MOCK_SQUEUE_COUNT_FILE="$counts/squeue" \
+    MOCK_SCONTROL_COUNT_FILE="$counts/scontrol" bash -lc \
+    '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --name foo_run --dry-run'
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$counts/squeue" | tr -d ' ')" -eq 1 ]
+  [ ! -e "$counts/scontrol" ]
+  rm -rf "$counts"
+}

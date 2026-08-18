@@ -81,15 +81,33 @@ util::pick_latest_line() {
 # input row is emitted unchanged so later filters retain every Slurm field.
 util::filter_candidates_older_than() {
   local threshold="${1:?need threshold}"
-  local line elapsed
+  [[ "$threshold" =~ ^[0-9]+[smhd]?$ ]] || {
+    printf 'error: invalid duration: %s\n' "$threshold" >&2
+    return 2
+  }
 
-  while IFS= read -r line; do
-    [[ -n "$line" ]] || continue
-    IFS='|' read -r _ _ _ _ elapsed _ <<<"$line"
-    if util::older_than "$elapsed" "$threshold"; then
-      printf '%s\n' "$line"
-    fi
-  done
+  awk -F'|' -v threshold="$threshold" '
+    function duration_seconds(value, unit, number) {
+      unit=substr(value, length(value), 1)
+      if (unit ~ /^[smhd]$/) number=substr(value, 1, length(value)-1) + 0
+      else { unit="s"; number=value + 0 }
+      if (unit == "d") return number * 86400
+      if (unit == "h") return number * 3600
+      if (unit == "m") return number * 60
+      return number
+    }
+    function elapsed_seconds(value, day_parts, time_parts, days, hours, minutes, seconds, n) {
+      days=hours=minutes=seconds=0
+      n=split(value, day_parts, "-")
+      if (n == 2) { days=day_parts[1] + 0; value=day_parts[2] }
+      n=split(value, time_parts, ":")
+      if (n == 3) { hours=time_parts[1]+0; minutes=time_parts[2]+0; seconds=time_parts[3]+0 }
+      else if (n == 2) { minutes=time_parts[1]+0; seconds=time_parts[2]+0 }
+      return days*86400 + hours*3600 + minutes*60 + seconds
+    }
+    BEGIN { limit=duration_seconds(threshold) }
+    NF && elapsed_seconds($5) > limit { print }
+  '
 }
 
 # Generic: keep rows whose field f matches any value from the first input.

@@ -114,3 +114,13 @@ teardown() {
   [ "$status" -eq 0 ]
   [[ "$output" =~ No\ valid\ job\ IDs\ to\ query ]]
 }
+
+@test "smartqueue performs one snapshot query and one formatted render query" {
+  count_file="$(mktemp)"
+  : > "$count_file"
+  run env MOCK_SQUEUE_COUNT_FILE="$count_file" bash -lc \
+    '"$SSC_HOME/cmd/smartqueue/smartqueue.sh" --name baz_long'
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$count_file" | tr -d ' ')" -eq 2 ]
+  rm -f "$count_file"
+}
