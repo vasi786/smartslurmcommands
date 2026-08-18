@@ -31,6 +31,8 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 | Flag | Description | Notes |
 |------|-------------|-------|
 | `--older-than DUR` | Only jobs with elapsed time > `DUR` (e.g. `10m`, `2h`). | — |
+| `--younger-than DUR` | Only jobs with elapsed time < `DUR` (e.g. `10m`, `2h`). | The comparison is strict; jobs exactly at the threshold are excluded. |
+| `--time-left DUR` | Only jobs with remaining time < `DUR` (e.g. `30m`, `2h`). | Uses Slurm's [`TimeLeft`](https://slurm.schedmd.com/squeue.html); `NOT_SET`, `UNLIMITED`, and other non-numeric values are excluded. |
 | `--state STATE` | Only jobs in this Slurm state (case-insensitive). Dependency "reason" from `squeue` is also treated as a state. | Examples: `RUNNING`, `PENDING`, `DEPENDENCY`. |
 
 ### Partition Filter
@@ -44,6 +46,23 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 | Flag | Description | Notes |
 |------|-------------|-------|
 | `--latest` | Select the latest otherwise matching job, without adding a state filter. | Uses StartTime when every match has one; otherwise uses the highest JobID. |
+
+### Time-filter examples
+
+Durations accept seconds, minutes, hours, or days (`30s`, `30m`, `2h`, `2d`); a bare number means seconds.
+
+```bash
+# Preview newer jobs while keeping jobs aged one hour or more safe.
+smartcancel --younger-than 1h --dry-run
+
+# Preview running jobs that have less than 30 minutes remaining.
+smartcancel --time-left 30m --state RUNNING --dry-run
+
+# Select an elapsed-time window: strictly older than 30m and younger than 2h.
+smartcancel --older-than 30m --younger-than 2h --dry-run
+```
+
+Always inspect the dry-run output before cancelling by time.
 
 ## Behavior (optional)
 

@@ -28,6 +28,8 @@ Native mode and smart-filter mode are separate invocations.
 .BR --contains " " TEXT ,
 .BR --regex " " PATTERN ,
 .BR --older-than " " DURATION ,
+.BR --younger-than " " DURATION ,
+.BR --time-left " " DURATION ,
 .BR --state " " STATE ,
 .BR --partition " " NAME[,NAME...] ,
 and
@@ -36,3 +38,9 @@ and
 .B --latest
 does not add a state restriction.
 StartTime is used when every candidate has one; otherwise the highest JobID is used.
+.PP
+.B --younger-than
+and
+.B --time-left
+use strict less-than comparisons.
+Non-numeric remaining-time values such as NOT_SET and UNLIMITED are excluded.

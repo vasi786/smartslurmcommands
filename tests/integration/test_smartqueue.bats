@@ -52,6 +52,24 @@ teardown() {
   [[ ! "$output" =~ baz_long ]]
 }
 
+@test "smartqueue younger-than intersects with state" {
+  run bash -lc '"$SSC_HOME/cmd/smartqueue/smartqueue.sh" --younger-than 1h --state running'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ foo_run ]]
+  [[ "$output" =~ bar_run ]]
+  [[ ! "$output" =~ foo_old ]]
+  [[ ! "$output" =~ baz_long ]]
+}
+
+@test "smartqueue time-left excludes equal and unlimited values" {
+  run bash -lc '"$SSC_HOME/cmd/smartqueue/smartqueue.sh" --time-left 30m --state running'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ foo_old ]]
+  [[ "$output" =~ baz_long ]]
+  [[ ! "$output" =~ alpha_test ]]
+  [[ ! "$output" =~ baz_short ]]
+}
+
 @test "smartqueue name and state filters intersect" {
   run bash -lc '"$SSC_HOME/cmd/smartqueue/smartqueue.sh" --name foo_pending --state pending'
   [ "$status" -eq 0 ]

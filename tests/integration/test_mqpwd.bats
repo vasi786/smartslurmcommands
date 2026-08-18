@@ -2,16 +2,16 @@
 # Integration tests for mqpwd against slurm_mocks/squeue
 #
 # squeue fixture rows:
-# 1001|foo_run|RUNNING|/w/dirA|00:12:34|2025-11-10T10:00:00|tcn[1-2]|genoa
-# 1002|foo_old|RUNNING|/w/dirA|2-03:04:05|2025-11-08T09:00:00|tcn[5]|genoa*
-# 1003|foo_pending|PENDING|/w/dirA|0:00|N/A|(Priority)|genoa
-# 1582|bar_dep|PENDING|/w/dirB|0:00|N/A|(Dependency)|genoa
-# 1012|bar_run|RUNNING|/w/dirB|00:00:05|2025-11-10T10:05:00|tcn[7]|genoa
-# 1583|baz_long|RUNNING|/w/dirC|1-02:03:04|2025-11-09T08:00:00|tcn[3]|rome
-# 1022|baz_short|RUNNING|/w/dirC|00:00:50|2025-11-10T10:10:00|tcn[4]|rome
-# 1023|baz_fail|FAILED|/w/dirC|00:59|2025-11-10T09:50:00|N/A|rome
-# 1031|alpha_test|RUNNING|/w/dirD|00:20:00|2025-11-10T09:40:00|tcn[8]|arm64
-# 1032|alpha_other|PENDING|/w/dirD|0:00|N/A|(Dependency)|arm64
+# 1001|foo_run|RUNNING|/w/dirA|00:12:34|2025-11-10T10:00:00|tcn[1-2]|genoa|00:47:26
+# 1002|foo_old|RUNNING|/w/dirA|2-03:04:05|2025-11-08T09:00:00|tcn[5]|genoa*|00:05:55
+# 1003|foo_pending|PENDING|/w/dirA|0:00|N/A|(Priority)|genoa|1-00:00:00
+# 1582|bar_dep|PENDING|/w/dirB|0:00|N/A|(Dependency)|genoa|NOT_SET
+# 1012|bar_run|RUNNING|/w/dirB|00:00:05|2025-11-10T10:05:00|tcn[7]|genoa|00:59:55
+# 1583|baz_long|RUNNING|/w/dirC|1-02:03:04|2025-11-09T08:00:00|tcn[3]|rome|00:10:00
+# 1022|baz_short|RUNNING|/w/dirC|00:00:50|2025-11-10T10:10:00|tcn[4]|rome|UNLIMITED
+# 1023|baz_fail|FAILED|/w/dirC|00:59|2025-11-10T09:50:00|N/A|rome|00:00
+# 1031|alpha_test|RUNNING|/w/dirD|00:20:00|2025-11-10T09:40:00|tcn[8]|arm64|00:30:00
+# 1032|alpha_other|PENDING|/w/dirD|0:00|N/A|(Dependency)|arm64|UNLIMITED
 
 setup() {
   export PATH_ORIG="$PATH"
@@ -170,6 +170,19 @@ EOF
   [[ "$output" =~ foo_old ]]
   [[ ! "$output" =~ foo_run ]]
   [[ ! "$output" =~ foo_pending ]]
+}
+
+@test "mqpwd applies remaining-time filters to directory jobs" {
+  run bash -lc '
+    tmp="$(mktemp -d)"
+    printf "%s\n" "#SBATCH --job-name=baz_long" > "$tmp/long.sh"
+    printf "%s\n" "#SBATCH --job-name=baz_short" > "$tmp/short.sh"
+
+    "$SSC_HOME/cmd/mqpwd/mqpwd.sh" --dir "$tmp" --time-left 30m
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ baz_long ]]
+  [[ ! "$output" =~ baz_short ]]
 }
 
 @test "mqpwd accepts explicit --this-dir" {

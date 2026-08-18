@@ -143,6 +143,44 @@ teardown() {
   [[ ! "$output" =~ alpha_other ]]
 }
 
+@test "--younger-than keeps older jobs outside the cancellation set" {
+  run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --younger-than 1h --state running --dry-run'
+  [ "$status" -eq 0 ]
+
+  [[ "$output" =~ foo_run ]]
+  [[ "$output" =~ bar_run ]]
+  [[ "$output" =~ baz_short ]]
+  [[ "$output" =~ alpha_test ]]
+  [[ ! "$output" =~ foo_old ]]
+  [[ ! "$output" =~ baz_long ]]
+}
+
+@test "--time-left selects running jobs strictly below the threshold" {
+  run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --time-left 30m --state running --dry-run'
+  [ "$status" -eq 0 ]
+
+  [[ "$output" =~ foo_old ]]
+  [[ "$output" =~ baz_long ]]
+  [[ ! "$output" =~ foo_run ]]
+  [[ ! "$output" =~ baz_short ]]
+  [[ ! "$output" =~ alpha_test ]]
+}
+
+@test "older-than and younger-than form an elapsed-time window" {
+  run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --older-than 1h --younger-than 2d --dry-run'
+  [ "$status" -eq 0 ]
+
+  [[ "$output" =~ baz_long ]]
+  [[ ! "$output" =~ foo_old ]]
+  [[ ! "$output" =~ foo_run ]]
+}
+
+@test "smartcancel rejects an invalid time-left duration" {
+  run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --time-left soon --dry-run'
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ invalid\ duration:\ soon ]]
+}
+
 # --------------------------------------------------------------------
 # Partition filter
 # --------------------------------------------------------------------

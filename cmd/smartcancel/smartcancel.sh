@@ -26,6 +26,8 @@ Filters (combine as needed):
   --regex PATTERN              Job names with matching regex pattern will be filtered.
   --regex-from-stdin           With this option, smartcancel accept's regex patterns from stdin (ex: somecommand |smartcancel --regex-from-stdin --dry-run).
   --older-than DUR             Only jobs with elapsed time > DUR (e.g., 10m, 2h).
+  --younger-than DUR           Only jobs with elapsed time < DUR (e.g., 10m, 2h).
+  --time-left DUR              Only jobs with remaining time < DUR (e.g., 30m, 2h).
   --state STATE                Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive. Dependency is the only excpetion which is treated as state.
   --partition NAME[,NAME...]   Only jobs in these Slurm partitions.
   --latest                     Pick the latest matching job. Uses StartTime when all
@@ -54,6 +56,8 @@ NAME_EQ=""
 NAME_CONTAINS=""
 NAME_REGEX=""
 OLDER_THAN=""
+YOUNGER_THAN=""
+TIME_LEFT=""
 STATE_FILTER=""
 PARTITION_FILTER=""
 # currently reason filter is only used when --state dependency is supplied
@@ -83,6 +87,8 @@ while [[ $# -gt 0 ]]; do
     --regex-from-stdin) REGEX_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --sep) STDIN_SEP="$2"; shift 2 ;;
     --older-than) OLDER_THAN="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
+    --younger-than) YOUNGER_THAN="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1)); shift 2 ;;
+    --time-left) TIME_LEFT="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1)); shift 2 ;;
     --latest) LATEST=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --state) SELECTOR_COUNT=$((SELECTOR_COUNT+1)); args::parse_state "$2"; shift 2 ;;
     --partition) PARTITION_FILTER="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1)); shift 2 ;;
@@ -97,7 +103,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if (( SELECTOR_COUNT == 0 )); then
-  die 2 "Refusing to operate with no filter selector. Use one of: --this-dir, --dir, --name, --contains, --contains-from-stdin, --latest, --state --partition --older-than."
+  die 2 "Refusing to operate with no filter selector. Use one of: --this-dir, --dir, --name, --contains, --contains-from-stdin, --latest, --state, --partition, --older-than, --younger-than, --time-left."
 fi
 
 if $CONTAINS_FROM_STDIN && $REGEX_FROM_STDIN; then
@@ -120,8 +126,8 @@ fi
 DEPENDENCY_CACHE=""
 if $INCLUDE_DEPENDENTS; then
   SQUEUE_SNAPSHOT="$(slurm::squeue_lines_with_dependencies "$STATE_FILTER")"
-  SQUEUE_CACHE="$(awk -F'|' 'BEGIN {OFS="|"} NF {print $1,$2,$3,$4,$5,$6,$7,$8}' <<<"$SQUEUE_SNAPSHOT")"
-  DEPENDENCY_CACHE="$(awk -F'|' 'NF {print $1 "|" $9}' <<<"$SQUEUE_SNAPSHOT")"
+  SQUEUE_CACHE="$(awk -F'|' 'BEGIN {OFS="|"} NF {print $1,$2,$3,$4,$5,$6,$7,$8,$9}' <<<"$SQUEUE_SNAPSHOT")"
+  DEPENDENCY_CACHE="$(awk -F'|' 'NF {print $1 "|" $10}' <<<"$SQUEUE_SNAPSHOT")"
 else
   SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
 fi
@@ -172,6 +178,16 @@ fi
 if [[ -n "$OLDER_THAN" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_older_than "$OLDER_THAN")"
   log_jobs_count "after --older-than '$OLDER_THAN'" "$CANDIDATES"
+fi
+
+if [[ -n "$YOUNGER_THAN" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_younger_than "$YOUNGER_THAN")"
+  log_jobs_count "after --younger-than '$YOUNGER_THAN'" "$CANDIDATES"
+fi
+
+if [[ -n "$TIME_LEFT" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_time_left "$TIME_LEFT")"
+  log_jobs_count "after --time-left '$TIME_LEFT'" "$CANDIDATES"
 fi
 
 # Latest only

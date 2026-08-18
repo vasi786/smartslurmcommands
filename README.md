@@ -66,6 +66,8 @@ Combine the flags as needed.
 | `--dir PATH` | Fetch jobs related to the provided `PATH`. |
 | `--latest` | Fetch the latest job among all otherwise matching jobs, regardless of state. |
 | `--older-than DUR` | Fetch jobs with elapsed time greater than `DUR` (e.g., `10m`, `2h`). |
+| `--younger-than DUR` | Fetch jobs with elapsed time less than `DUR`, keeping older jobs outside the match set. |
+| `--time-left DUR` | Fetch jobs whose Slurm remaining time is less than `DUR` (e.g., `30m`, `2h`). |
 | `--contains SUBSTR` | Fetch job names containing the specified substring of a jobname. |
 | `--regex PATTERN` | Show jobs with job names which matches the provided regex pattern. |
 | `--contains-from-stdin` | Read one or more regex patterns from STDIN and match job names against them. |
@@ -101,6 +103,12 @@ Combine the flags as needed.
   `smartcancel` recursively includes jobs that depend on the selected jobs by default.
   The complete expanded set is displayed before confirmation, and the confirmation count, dry-run commands, and executed IDs all use that same set.
   Set `smartcancel.include_dependents=false` in the configuration to cancel only directly selected jobs.
+
+  To preview running jobs with less than 30 minutes remaining:
+
+  ```bash
+  smartcancel --time-left 30m --state RUNNING --dry-run
+  ```
 
   ### Examples
   - If my queue is as below:

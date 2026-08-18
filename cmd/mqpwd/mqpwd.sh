@@ -24,6 +24,8 @@ Usage: mqpwd [PATH] [FILTERS]
     --contains SUBSTR            Job name contains substring.
     --regex PATTERN              Job names with matching regex pattern will be filtered.
     --older-than DUR             Only jobs with elapsed time > DUR (e.g., 10m, 2h).
+    --younger-than DUR           Only jobs with elapsed time < DUR (e.g., 10m, 2h).
+    --time-left DUR              Only jobs with remaining time < DUR (e.g., 30m, 2h).
     --state STATE                Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive.
     --partition NAME[,NAME...]   Only jobs in these Slurm partitions.
     --latest                     Pick the latest matching job. Uses StartTime when all
@@ -57,6 +59,8 @@ NAME_EQ=""
 NAME_CONTAINS=""
 NAME_REGEX=""
 OLDER_THAN=""
+YOUNGER_THAN=""
+TIME_LEFT=""
 STATE_FILTER=""
 PARTITION_FILTER=""
 REASON_FILTER=""
@@ -71,6 +75,8 @@ while [[ $# -gt 0 ]]; do
     --contains) NAME_CONTAINS="$2"; shift 2 ;;
     --regex) NAME_REGEX="$2"; shift 2 ;;
     --older-than) OLDER_THAN="$2"; shift 2 ;;
+    --younger-than) YOUNGER_THAN="$2"; shift 2 ;;
+    --time-left) TIME_LEFT="$2"; shift 2 ;;
     --latest) LATEST=true; shift ;;
     --state) args::parse_state "$2"; shift 2 ;;
     --partition) PARTITION_FILTER="$2"; shift 2 ;;
@@ -97,7 +103,7 @@ else
 fi
 
 # Build a cache of this user’s jobs in our pipe format:
-# %i|%j|%T|%Z|%M|%S|%R|%P  → id|name|state|workdir|elapsed|start|reason|partition
+# %i|%j|%T|%Z|%M|%S|%R|%P|%L  → id|name|state|workdir|elapsed|start|reason|partition|time-left
 # The below directive is issued as calling the squeue_lines function without any arguments is intentional (goes to default --> all jobs and current user)
 # shellcheck disable=SC2119
 SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
@@ -131,6 +137,14 @@ fi
 if [[ -n "$OLDER_THAN" ]]; then
   CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_older_than "$OLDER_THAN")"
   log_jobs_count "after --older-than '$OLDER_THAN'" "$CANDIDATES"
+fi
+if [[ -n "$YOUNGER_THAN" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_younger_than "$YOUNGER_THAN")"
+  log_jobs_count "after --younger-than '$YOUNGER_THAN'" "$CANDIDATES"
+fi
+if [[ -n "$TIME_LEFT" ]]; then
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_time_left "$TIME_LEFT")"
+  log_jobs_count "after --time-left '$TIME_LEFT'" "$CANDIDATES"
 fi
 # Latest only
 if $LATEST; then

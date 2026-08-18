@@ -19,12 +19,20 @@ Every job in the final expanded set is displayed before confirmation, and that s
 .BR --contains " " TEXT ,
 .BR --regex " " PATTERN ,
 .BR --older-than " " DURATION ,
+.BR --younger-than " " DURATION ,
+.BR --time-left " " DURATION ,
 .BR --state " " STATE ,
 .BR --partition " " NAME[,NAME...] ,
 .BR --latest ,
 .BR --dry-run ,
 and
 .BR --force .
+.PP
+.B --younger-than
+and
+.B --time-left
+use strict less-than comparisons.
+Non-numeric remaining-time values such as NOT_SET and UNLIMITED are excluded.
 .SH CONFIGURATION
 The keys
 .BR confirm ,

@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
 # slurm.sh - Slurm library module
-# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition for a user (default: current)
+# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition|TimeLeft for a user (default: current)
 slurm::squeue_lines() {
   require_cmd squeue
   local state="${1:-}" user="${2:-$(current_user)}"
-  local args=(-h -o "%i|%j|%T|%Z|%M|%S|%R|%P" -u "$user")
+  local args=(-h -o "%i|%j|%T|%Z|%M|%S|%R|%P|%L" -u "$user")
   [[ -n "$state" ]] && args+=(-t "$state")
   log_run_capture "slurm::squeue_lines" squeue "${args[@]}"
 }
 
-# Return the normal eight job fields plus a ninth Dependency field. This keeps
+# Return the normal nine job fields plus a tenth Dependency field. This keeps
 # job and dependency data in one scheduler snapshot without changing the
-# canonical eight-field records used by filters.
+# canonical nine-field records used by filters.
 slurm::squeue_lines_with_dependencies() {
   require_cmd squeue
   local state="${1:-}" user="${2:-$(current_user)}"
-  local args=(-h -o "%i|%j|%T|%Z|%M|%S|%R|%P|%E" -u "$user")
+  local args=(-h -o "%i|%j|%T|%Z|%M|%S|%R|%P|%L|%E" -u "$user")
   [[ -n "$state" ]] && args+=(-t "$state")
   log_run_capture "slurm::squeue_lines_with_dependencies" squeue "${args[@]}"
 }
@@ -56,7 +56,7 @@ slurm::expand_with_dependents() {
   ' <(printf '%s\n' "$targets") <(printf '%s\n' "$dependency_lines") | sort -u
 }
 
-# squeue lines (JobID|JobName|State|WorkDir|Elapsed|StartTime) for given job names (current user).
+# squeue lines for the given job names (current user).
 slurm::squeue_by_job_names() {
   require_cmd squeue
   local user="${1:-$(current_user)}"; shift || true
@@ -86,7 +86,7 @@ slurm::squeue_by_job_names() {
   #  - Second input (squeue output): print rows where JobName ($2) is in set
   local rows
   rows="$(log_run_capture "slurm::squeue_by_job_names" squeue \
-            -h -o "%i|%j|%T|%Z|%M|%S|%R|%P" -u "$user")"
+            -h -o "%i|%j|%T|%Z|%M|%S|%R|%P|%L" -u "$user")"
   awk -F'|' 'NR==FNR { set[$1]; next } $2 in set' "$tmpnames" <<<"$rows"
 
   local rc=$?
