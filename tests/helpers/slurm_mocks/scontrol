@@ -1,5 +1,5 @@
-# tests/helpers/slurm_mocks/scontrol
 #!/usr/bin/env bash
+# tests/helpers/slurm_mocks/scontrol
 if [[ -n "${MOCK_SCONTROL_COUNT_FILE:-}" ]]; then
   printf '1\n' >> "$MOCK_SCONTROL_COUNT_FILE"
 fi
@@ -10,7 +10,7 @@ if [[ "${MOCK_DEPENDENCIES:-false}" != "true" ]]; then
   exit 0
 fi
 
-jid="${@: -1}"
+jid="${!#}"
 dependency="(null)"
 case "$jid" in
   1002) dependency="afterok:1001" ;;

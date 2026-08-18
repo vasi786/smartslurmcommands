@@ -6,6 +6,7 @@ smartslurmcommands (SSC) is a slurm command wrapper that provides enhanced slurm
 ## Table of Contents
 
 - [Installation](#installation)
+- [Updating](#updating)
 - [Featured Flags](#featured-flags)
 - [smartqueue](#smartqueue)
 - [smartcancel](#smartcancel)
@@ -20,6 +21,31 @@ Run this one-liner to install the latest release:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/vasi786/smartslurmcommands/main/install_latest.sh | bash
+```
+
+## Updating
+
+Use `ssc --update` to fetch and install the latest GitHub release:
+
+```bash
+ssc --update
+```
+
+Use `--tag` to install a specific release tag:
+
+```bash
+ssc --update --tag v0.2.5
+```
+
+The tag must exist in the [`vasi786/smartslurmcommands` releases](https://github.com/vasi786/smartslurmcommands/releases), including its `v` prefix when the release tag has one.
+Without `--tag`, `ssc` queries the latest GitHub release and does nothing when that version is already installed.
+With `--tag`, `ssc` installs the requested release even when that means reinstalling the current version or moving to an older version.
+The updater downloads the tagged source archive and runs the normal user-space installer, which installs to `~/.local` and preserves an existing configuration file.
+It requires `curl` and `tar`, and a network connection to GitHub.
+
+```bash
+ssc --update --help   # Show updater-specific help.
+ssc --version         # Show the installed version.
 ```
 
 ## Featured Flags
@@ -42,6 +68,16 @@ Combine the flags as needed.
 ## [smartqueue](./docs/subcommands/smartqueue.md)
   smartqueue is a smarter squeue wrapper that helps you inspect slurm jobs using intuitive, workflow-oriented filters.
   It can match jobs by directory, job-name, substring, regex, stdin patterns, or pick only the latest matching job.
+  Native `squeue` options are delegated directly instead of being reimplemented:
+
+  ```bash
+  smartqueue -u alice -t RUNNING
+  smartqueue -- --partition gpu --format="%.18i %.9P %.8j %.2t"
+  ```
+
+  Use `--` when a native option name overlaps with a smartqueue filter.
+  Keep native mode and smart-filter mode as separate invocations.
+  See the [official `squeue` documentation](https://slurm.schedmd.com/squeue.html) for native options.
   The above featured flags are just a subset of features.
   For full view of feature, see [here](./docs/subcommands/smartqueue.md)
 

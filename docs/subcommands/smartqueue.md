@@ -3,7 +3,32 @@ This command is similar to squeue, but with additional arguments to better filte
 
 ## Usage
 
+```text
 smartqueue [FILTERS]
+smartqueue [SQUEUE OPTIONS]
+smartqueue -- [SQUEUE OPTIONS]
+```
+
+## Native `squeue` options
+
+Arguments that are not smartqueue filters are passed unchanged to `squeue`.
+This keeps native Slurm behavior, output, validation, and exit codes under the control of `squeue` and avoids duplicating its option parser.
+
+```bash
+# These are native squeue options and are delegated directly.
+smartqueue -u alice -t RUNNING
+smartqueue --account research --sort=-t
+```
+
+Some long option names, such as `--partition`, are also smartqueue filters.
+Use `--` to force native mode when a native option overlaps with a smartqueue option:
+
+```bash
+smartqueue -- --partition gpu --format="%.18i %.9P %.8j %.2t"
+```
+
+Native mode and smart-filter mode are separate invocations; do not combine their options in one command.
+See the [official `squeue` documentation](https://slurm.schedmd.com/squeue.html) for the native option list.
 
 ## Filters
 
@@ -48,6 +73,7 @@ smartqueue [FILTERS]
 
 | Flag | Description | Notes |
 |------|-------------|-------|
+| `--` | Pass all following arguments directly to native `squeue`. | Use this for native options that overlap with smartqueue filters. |
 | `-h`, `--help` | Show all flags on the terminal. | — |
 | `--version` | Shows the version of smartslurmcommands. | - |
 | `--verbose` | Prints the information of at what step the code is and how many jobs did it find for the filter you passed. | - |

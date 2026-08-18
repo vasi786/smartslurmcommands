@@ -4,19 +4,30 @@ set -euo pipefail
 if [[ -n "${MOCK_SQUEUE_COUNT_FILE:-}" ]]; then
   printf '1\n' >> "$MOCK_SQUEUE_COUNT_FILE"
 fi
+if [[ -n "${MOCK_SQUEUE_ARGS_FILE:-}" ]]; then
+  {
+    printf '%s' "$#"
+    for arg in "$@"; do
+      printf '\t%s' "$arg"
+    done
+    printf '\n'
+  } >> "$MOCK_SQUEUE_ARGS_FILE"
+fi
+if [[ -n "${MOCK_SQUEUE_EXIT_STATUS:-}" ]]; then
+  exit "$MOCK_SQUEUE_EXIT_STATUS"
+fi
 header=true
 format="%i|%j|%T|%Z|%M|%S|%R|%P"  # match your lib/slurm.sh
-user=""
 state=""
 job_ids=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h) header=false; shift ;;
     -o) format="$2"; shift 2 ;;
-    -u) user="$2"; shift 2 ;;
+    -u) shift 2 ;;
     -t) state="$2"; shift 2 ;;
     -j|--jobs) job_ids="$2"; shift 2 ;;
-    --me) user="${USER:-mock-user}"; shift ;;
+    --me) shift ;;
     *)  shift ;;
   esac
 done

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# smartqueue - smarter wrapper around scancel focused on dir/name workflows.
+# smartqueue - smarter wrapper around squeue focused on dir/name workflows.
 set -Eeuo pipefail
 IFS=$'\n\t'
 
@@ -15,6 +15,8 @@ source "$SSC_HOME/lib/slurm.sh"
 usage() {
   cat <<'EOF'
   Usage: smartqueue [FILTERS]
+         smartqueue [SQUEUE OPTIONS]
+         smartqueue -- [SQUEUE OPTIONS]
 
   Filters (combine as needed):
     --this-dir                   Show jobs whose WorkDir == $PWD or fallback to the job_name found in the CWD.
@@ -31,6 +33,8 @@ usage() {
                                  matches have one; otherwise falls back to JobID.
 
   Other:
+    --                           Pass all following arguments directly to squeue.
+                                 Unrecognized arguments also select this native mode.
     -h, --help                   Show this help.
     --version                    Shows the version of smartslurmcommands.
     --verbose                    Prints the information of at what step the code is and how many jobs did it find for the filter you passed.
@@ -39,6 +43,7 @@ EOF
 }
 
 # --- Parse args
+ORIGINAL_ARGS=("$@")
 THIS_DIR=false
 DIR_FILTER=""
 NAME_EQ=""
@@ -75,7 +80,15 @@ while [[ $# -gt 0 ]]; do
     --version) util::version; exit 0 ;;
     --verbose) SSC_LOG_LEVEL=info; shift ;;
     --debug) SSC_LOG_LEVEL=debug; shift ;;
-    *) die 2 "Unknown argument: $1 (see --help)";;
+    --)
+      shift
+      require_cmd squeue
+      exec squeue "$@"
+      ;;
+    *)
+      require_cmd squeue
+      exec squeue "${ORIGINAL_ARGS[@]}"
+      ;;
   esac
 done
 

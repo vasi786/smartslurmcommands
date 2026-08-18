@@ -4,9 +4,23 @@ smartqueue \- filter and display Slurm jobs
 .SH SYNOPSIS
 .B smartqueue
 .RI [ FILTERS ]
+.br
+.B smartqueue
+.RI [ SQUEUE_OPTIONS ]
+.br
+.B smartqueue
+.B --
+.RI [ SQUEUE_OPTIONS ]
 .SH DESCRIPTION
 Filters the current user's queue by directory, exact name, substring, regular expression, elapsed time, state, partition, stdin patterns, or latest matching job.
 Combined filters are intersections.
+.PP
+Arguments not recognized as smartqueue filters are delegated unchanged to
+.BR squeue (1).
+Use
+.B --
+to force native mode when an option name overlaps with a smartqueue filter.
+Native mode and smart-filter mode are separate invocations.
 .SH FILTERS
 .BR --this-dir ,
 .BR --dir " " PATH ,
