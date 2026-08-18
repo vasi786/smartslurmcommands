@@ -46,20 +46,50 @@ util::older_than() {
 # current_user helper (unchanged)
 current_user() { id -un 2>/dev/null || echo "${USER:-unknown}"; }
 
-# Pick the "latest" line by StartTime (field 6), fallback to highest JobID
+# Pick the latest line deterministically.
+# Use StartTime when every candidate has one; if any candidate lacks StartTime
+# (as pending jobs often do), use the highest numeric JobID for the whole set.
 util::pick_latest_line() {
   awk -F'|' '
-    BEGIN { bestid=0; bestS=""; have=0 }
+    BEGIN { count=0; all_have_start=1; bestid=-1; bestS="" }
     {
-      id=$1; S=$6;
-      if (S ~ /[0-9]/) {
-        if (!have || S > bestS) { bestS=S; bestid=id; best=$0; have=1 }
-      } else {
-        if (!have || id+0 > bestid+0) { bestid=id; best=$0; have=1 }
-      }
+      count++
+      id=$1 + 0
+      start=$6
+      line[count]=$0
+      ids[count]=id
+      starts[count]=start
+      if (start !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}/) all_have_start=0
     }
-    END { if (have) print best }
+    END {
+      if (!count) exit
+      best=1
+      for (i=2; i<=count; i++) {
+        if (all_have_start) {
+          if (starts[i] > starts[best] ||
+              (starts[i] == starts[best] && ids[i] > ids[best])) best=i
+        } else if (ids[i] > ids[best]) {
+          best=i
+        }
+      }
+      print line[best]
+    }
   '
+}
+
+# Keep rows whose elapsed-time field is greater than THRESHOLD. The complete
+# input row is emitted unchanged so later filters retain every Slurm field.
+util::filter_candidates_older_than() {
+  local threshold="${1:?need threshold}"
+  local line elapsed
+
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    IFS='|' read -r _ _ _ _ elapsed _ <<<"$line"
+    if util::older_than "$elapsed" "$threshold"; then
+      printf '%s\n' "$line"
+    fi
+  done
 }
 
 # Generic: keep rows whose field f matches any value from the first input.
@@ -159,8 +189,14 @@ util::filter_candidates_by_partition() {
 util::apply_dir_filter_with_fallback() {
   local dir="${1:?}"
   local candidates; candidates="$(cat)"
-  absdir=$(realpath "$dir")
+  local absdir
+  if command -v realpath >/dev/null 2>&1; then
+    absdir="$(realpath "$dir")"
+  else
+    absdir="$(cd "$dir" && pwd -P)"
+  fi
 
+  local -a _names=()
   mapfile -t _names < <(util::job_names_from_dir "$dir")
 
   # Subset A: by names (if any)

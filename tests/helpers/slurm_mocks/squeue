@@ -5,19 +5,21 @@ header=true
 format="%i|%j|%T|%Z|%M|%S|%R|%P"  # match your lib/slurm.sh
 user=""
 state=""
+job_ids=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h) header=false; shift ;;
     -o) format="$2"; shift 2 ;;
     -u) user="$2"; shift 2 ;;
     -t) state="$2"; shift 2 ;;
+    -j|--jobs) job_ids="$2"; shift 2 ;;
+    --me) user="${USER:-mock-user}"; shift ;;
     *)  shift ;;
   esac
 done
 
 # fixture rows (JobID|JobName|State|WorkDir|Elapsed|Start|Reason|Partition)
-rows=$'\
-1001|foo_run|RUNNING|/w/dirA|00:12:34|2025-11-10T10:00:00|tcn[1-2]|genoa
+rows=$'1001|foo_run|RUNNING|/w/dirA|00:12:34|2025-11-10T10:00:00|tcn[1-2]|genoa
 1002|foo_old|RUNNING|/w/dirA|2-03:04:05|2025-11-08T09:00:00|tcn[5]|genoa*
 1003|foo_pending|PENDING|/w/dirA|0:00|N/A|(Priority)|genoa
 1582|bar_dep|PENDING|/w/dirB|0:00|N/A|(Dependency)|genoa
@@ -33,6 +35,16 @@ rows=$'\
 # apply crude state filter
 if [[ -n "$state" ]]; then
   rows="$(awk -F'|' -v s="$state" 'toupper($3)==toupper(s)' <<<"$rows")"
+fi
+
+if [[ -n "$job_ids" ]]; then
+  rows="$(awk -F'|' -v ids="$job_ids" '
+    BEGIN {
+      count=split(ids, requested, ",")
+      for (i=1; i<=count; i++) wanted[requested[i]]=1
+    }
+    $1 in wanted
+  ' <<<"$rows")"
 fi
 
 # ignore -u for mock

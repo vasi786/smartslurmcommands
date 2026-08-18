@@ -1,6 +1,6 @@
-# smartslurmcommands user config (overrides)
-# Lines are KEY="VALUE" (bash-quoted). This file is never overwritten by install.
-# You can export SSC_KEY env vars to override temporarily (e.g., SSC_SMARTCANCEL_DEFAULT_REASON=...).
+# smartslurmcommands user config. This file is data, not a shell script.
+# It is created once by the installer and never overwritten.
 
-# Default reason used by smartcancel when --reason is not passed
-SMARTCANCEL_DEFAULT_REASON=""
+confirm=true
+dry_run=false
+smartcancel.include_dependents=true

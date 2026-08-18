@@ -23,13 +23,16 @@ slurm::collect_dependents() {
     [[ -z "$jid" ]] && continue
     # Dependency=afterok:123,456;afterany:789
     local dep
-    dep="$(scontrol show job "$jid" 2>/dev/null | awk -F= '/Dependency=/{print $2}' | tr -d ' ')"
+    dep="$(scontrol show job -o "$jid" 2>/dev/null \
+      | sed -n 's/^.*[[:space:]]Dependency=\([^[:space:]]*\).*$/\1/p')"
+    [[ -n "$dep" ]] || dep="$(scontrol show job -o "$jid" 2>/dev/null \
+      | sed -n 's/^Dependency=\([^[:space:]]*\).*$/\1/p')"
     [[ -z "$dep" ]] && continue
     # Normalize separators to newlines for easy matching
     local flat="${dep//[,;:]/$'\n'}"
     while read -r tid; do
       [[ -z "$tid" ]] && continue
-      if grep -qx "$tid" <<<"$flat"; then
+      if sed -E 's/\([^)]*\)$//' <<<"$flat" | grep -qx "$tid"; then
         new+="$jid"$'\n'
         break
       fi
