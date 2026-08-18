@@ -5,17 +5,20 @@ IFS=$'\n\t'
 
 SSC_HOME="${SSC_HOME:-"$(cd "$(dirname "$0")/../.." && pwd)"}"
 source "$SSC_HOME/lib/core.sh"
+source "$SSC_HOME/lib/cfg.sh"; cfg::load
 source "$SSC_HOME/lib/slurm.sh"
 source "$SSC_HOME/lib/util.sh"
+source "$SSC_HOME/lib/args.sh"
 source "$SSC_HOME/lib/log.sh"
 
 usage() {
   cat <<'EOF'
 mqpwd - List jobs associated with sbatch scripts or working directory
 
-Usage: mqpwd [FILTERS (optional)]
+Usage: mqpwd [PATH] [FILTERS]
 
   Filters (combine as needed):
+    --this-dir                  show jobs related to the current directory (default).
     --dir PATH                   show jobs whose WorkDir == PATH or fallback to the job_name found in the PATH.
     --name NAME                  Exact job name match.
     --contains SUBSTR            Job name contains substring.
@@ -23,10 +26,13 @@ Usage: mqpwd [FILTERS (optional)]
     --older-than DUR             Only jobs with elapsed time > DUR (e.g., 10m, 2h).
     --state STATE                Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive.
     --partition NAME[,NAME...]   Only jobs in these Slurm partitions.
-    --latest                     Pick only the latest matching job (by StartTime or JobID).
+    --latest                     Pick the latest matching job. Uses StartTime when all
+                                 matches have one; otherwise falls back to JobID.
 
   Behavior:
     -h, --help                   Show this help.
+    --verbose                    Show match counts after each filter.
+    --debug                      Show match counts and intermediate records.
 
   . If the directory contains *.sh scripts with "#SBATCH --job-name", those
     job names are extracted and used to filter squeue output.
@@ -55,24 +61,33 @@ STATE_FILTER=""
 PARTITION_FILTER=""
 REASON_FILTER=""
 LATEST=false
+SSC_LOG_LEVEL="$(cfg::get log_level none)"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --this-dir) DIR_FILTER="$PWD"; shift ;;
     --dir) DIR_FILTER="$2"; shift 2 ;;
     --name) NAME_EQ="$2"; shift 2 ;;
     --contains) NAME_CONTAINS="$2"; shift 2 ;;
-    --regex) NAME_REGEX="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
+    --regex) NAME_REGEX="$2"; shift 2 ;;
     --older-than) OLDER_THAN="$2"; shift 2 ;;
     --latest) LATEST=true; shift ;;
-    --state) SELECTOR_COUNT=$((SELECTOR_COUNT+1)); args::parse_state "$2"; shift 2 ;;
+    --state) args::parse_state "$2"; shift 2 ;;
     --partition) PARTITION_FILTER="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     --version) util::version; exit 0 ;;
-    *) die 2 "Unknown argument: $1 (see --help)";;
+    --verbose) SSC_LOG_LEVEL=info; shift ;;
+    --debug) SSC_LOG_LEVEL=debug; shift ;;
+    -*) die 2 "Unknown argument: $1 (see --help)";;
+    *)
+      [[ "$DIR_FILTER" == "$PWD" ]] || die 2 "Unexpected extra path: $1 (see --help)"
+      DIR_FILTER="$1"
+      shift
+      ;;
   esac
 done
 
-[[ -d "$DIR_FILTER" ]] || die 2 "Directory not found: $dir"
+[[ -d "$DIR_FILTER" ]] || die 2 "Directory not found: $DIR_FILTER"
 
 # Resolve absolute, physical path (keeps tests & matching consistent)
 if command -v realpath >/dev/null 2>&1; then
@@ -114,14 +129,7 @@ if [[ -n "$PARTITION_FILTER" ]]; then
   log_jobs_count "after --partition '$PARTITION_FILTER'" "$CANDIDATES"
 fi
 if [[ -n "$OLDER_THAN" ]]; then
-  filtered=""
-  while IFS='|' read -r jid jname state wdir elapsed start; do
-    [[ -z "$jid" ]] && continue
-    if util::older_than "$elapsed" "$OLDER_THAN"; then
-      filtered+="$jid|$jname|$state|$wdir|$elapsed|$start"$'\n'
-    fi
-  done <<< "$CANDIDATES"
-  CANDIDATES="$filtered"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_older_than "$OLDER_THAN")"
   log_jobs_count "after --older-than '$OLDER_THAN'" "$CANDIDATES"
 fi
 # Latest only

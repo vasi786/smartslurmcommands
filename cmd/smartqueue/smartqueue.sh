@@ -27,7 +27,8 @@ usage() {
     --older-than DUR             Show jobs that have elapsed time > DUR (e.g., 10m, 2h).
     --state STATE                Show jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive. Dependency is the only excpetion which is treated as state.
     --partition NAME[,NAME...]   Show jobs in these Slurm partitions.
-    --latest                     Show latest job (by StartTime or JobID).
+    --latest                     Show the latest matching job. Uses StartTime when all
+                                 matches have one; otherwise falls back to JobID.
 
   Other:
     -h, --help                   Show this help.
@@ -67,7 +68,7 @@ while [[ $# -gt 0 ]]; do
     --regex-from-stdin) REGEX_FROM_STDIN=true; shift ;;
     --sep) STDIN_SEP="$2"; shift 2 ;;
     --older-than) OLDER_THAN="$2"; shift 2 ;;
-    --latest) LATEST=true; STATE_FILTER="RUNNING"; shift ;;
+    --latest) LATEST=true; shift ;;
     --state)  args::parse_state "$2"; shift 2 ;;
     --partition) PARTITION_FILTER="$2";  shift 2 ;;
     -h|--help) usage; exit 0 ;;
@@ -135,14 +136,7 @@ if [[ -n "$PARTITION_FILTER" ]]; then
 fi
 
 if [[ -n "$OLDER_THAN" ]]; then
-  filtered=""
-  while IFS='|' read -r jid jname state wdir elapsed start; do
-    [[ -z "$jid" ]] && continue
-    if util::older_than "$elapsed" "$OLDER_THAN"; then
-      filtered+="$jid|$jname|$state|$wdir|$elapsed|$start"$'\n'
-    fi
-  done <<< "$CANDIDATES"
-  CANDIDATES="$filtered"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_older_than "$OLDER_THAN")"
   log_jobs_count "after --older-than '$OLDER_THAN'" "$CANDIDATES"
 fi
 

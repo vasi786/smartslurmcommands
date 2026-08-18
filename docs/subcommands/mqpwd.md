@@ -4,7 +4,7 @@ This command gets the jobs which are related to the current directory which you 
 If filters provided, they will be used to sort the jobs from the `squeue`.
 ## Usage
 
-mqpwd [FILTERS]
+mqpwd [PATH] [FILTERS]
 
 ## Filters
 
@@ -21,6 +21,7 @@ mqpwd [FILTERS]
 |------|-------------|-------|
 | `--name NAME` | shows jobs with exact job name match. | — |
 | `--contains SUBSTR` | show only the ones which match jobs whose name contains `SUBSTR`. | No wildcards allowed. |
+| `--regex PATTERN` | show jobs whose names match the regular expression. | Use `.*` for a wildcard-style match. |
 
 ### Duration & State Filters
 
@@ -39,7 +40,7 @@ mqpwd [FILTERS]
 
 | Flag | Description | Notes |
 |------|-------------|-------|
-| `--latest` | show only the latest matching job (by StartTime or JobID). | — |
+| `--latest` | show the latest otherwise matching job, without adding a state filter. | Uses StartTime when every match has one; otherwise uses the highest JobID. |
 
 ## Additional
 
@@ -49,3 +50,5 @@ mqpwd [FILTERS]
 | `--version` | Shows the version of smartslurmcommands. | - |
 | `--verbose` | Prints the information of at what step the code is and how many jobs did it find for the filter you passed. | - |
 | `--debug` | Prints the information of at what step the code and outputs the command. | - |
+
+`PATH` is retained as a positional shorthand for `--dir PATH`.

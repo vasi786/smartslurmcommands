@@ -187,17 +187,16 @@ teardown() {
 # Latest-job filter
 # --------------------------------------------------------------------
 
-@test "--latest returns only newest matching job among foo* family" {
+@test "--latest includes pending jobs and returns newest matching foo job" {
   run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --latest --contains foo --dry-run'
   [ "$status" -eq 0 ]
 
-  # Should match only the latest foo* job by StartTime (foo_run at 2025-11-10T10:00:00)
-  # Ensure foo_run present
-  [[ "$output" =~ foo_run ]]
+  # A missing StartTime makes JobID the deterministic fallback for the set.
+  [[ "$output" =~ foo_pending ]]
 
   # Ensure others are not selected
+  [[ ! "$output" =~ foo_run ]]
   [[ ! "$output" =~ foo_old ]]
-  [[ ! "$output" =~ foo_pending ]]
   [[ ! "$output" =~ bar_run ]]
   [[ ! "$output" =~ bar_dep ]]
   [[ ! "$output" =~ baz_long ]]
@@ -209,6 +208,35 @@ teardown() {
   # There should be exactly one scancel line
   n_scancel="$(printf "%s\n" "$output" | grep -c '^scancel ')"
   [ "$n_scancel" -eq 1 ]
+}
+
+@test "--latest --state running picks the newest running job by StartTime" {
+  run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --latest --state running --dry-run'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ baz_short ]]
+  [[ ! "$output" =~ foo_pending ]]
+  [[ ! "$output" =~ bar_dep ]]
+}
+
+@test "--latest --state pending can select a pending job" {
+  run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --latest --state pending --dry-run'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ bar_dep ]]
+  [[ ! "$output" =~ foo_run ]]
+}
+
+@test "--latest across mixed states does not add an implicit state filter" {
+  run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --latest --partition arm64 --dry-run'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ alpha_other ]]
+  [[ ! "$output" =~ alpha_test ]]
+}
+
+@test "--latest with no matching jobs exits safely" {
+  run bash -lc '"$SSC_HOME/cmd/smartcancel/smartcancel.sh" --latest --contains does-not-exist --dry-run'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ No\ matching\ jobs ]]
+  [[ ! "$output" =~ ^scancel ]]
 }
 
 # --------------------------------------------------------------------

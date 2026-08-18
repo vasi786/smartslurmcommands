@@ -28,11 +28,16 @@ Filters (combine as needed):
   --older-than DUR             Only jobs with elapsed time > DUR (e.g., 10m, 2h).
   --state STATE                Only jobs in this Slurm state (e.g., RUNNING, PENDING, DEPENDENCY) - non-case-sensitive. Dependency is the only excpetion which is treated as state.
   --partition NAME[,NAME...]   Only jobs in these Slurm partitions.
-  --latest                     Pick only the latest matching job (by StartTime or JobID).
+  --latest                     Pick the latest matching job. Uses StartTime when all
+                               matches have one; otherwise falls back to JobID.
 
 Behavior:
   --dry-run                    Show what would be cancelled.
   --force                      Do not prompt.
+
+  Jobs that recursively depend on selected jobs are included by default. Every
+  included job is shown before confirmation. Set
+  smartcancel.include_dependents=false in the configuration to disable this.
 
 Other:
   -h, --help                   Show this help.
@@ -41,8 +46,6 @@ Other:
   --debug                      Prints the information of at what step the code and outputs the command.
 EOF
 }
-
-DEFAULT_REASON="$(cfg::get SMARTCANCEL_DEFAULT_REASON "")"
 
 # --- Parse args
 THIS_DIR=false
@@ -56,9 +59,10 @@ PARTITION_FILTER=""
 # currently reason filter is only used when --state dependency is supplied
 REASON_FILTER=""
 LATEST=false
-DRY=false
+DRY="$(cfg::get_bool dry_run false)"
 FORCE=false
-REASON="$DEFAULT_REASON"
+CONFIRM_ENABLED="$(cfg::get_bool confirm true)"
+INCLUDE_DEPENDENTS="$(cfg::get_bool smartcancel.include_dependents true)"
 CONTAINS_FROM_STDIN=false
 REGEX_FROM_STDIN=false
 SELECTOR_COUNT=0   # counts “narrowing” selectors
@@ -79,7 +83,7 @@ while [[ $# -gt 0 ]]; do
     --regex-from-stdin) REGEX_FROM_STDIN=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --sep) STDIN_SEP="$2"; shift 2 ;;
     --older-than) OLDER_THAN="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift 2 ;;
-    --latest) LATEST=true; STATE_FILTER="RUNNING"; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
+    --latest) LATEST=true; SELECTOR_COUNT=$((SELECTOR_COUNT+1));shift ;;
     --state) SELECTOR_COUNT=$((SELECTOR_COUNT+1)); args::parse_state "$2"; shift 2 ;;
     --partition) PARTITION_FILTER="$2"; SELECTOR_COUNT=$((SELECTOR_COUNT+1)); shift 2 ;;
     --dry-run) DRY=true; shift ;;
@@ -111,8 +115,16 @@ if $REGEX_FROM_STDIN; then
   ((${#REGEX_PATTERNS[@]} > 0)) || die 2 "--regex-from-stdin received no patterns. Did you pass the correct separator(--sep)?"
 fi
 
-# Return lines: JobID|JobName|State|WorkDir|Elapsed|StartTime|Reason|Partition for a user (default: current)
-SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
+# Fetch dependency data only when the configured policy can use it. When it is
+# enabled, job records and dependencies still come from one scheduler snapshot.
+DEPENDENCY_CACHE=""
+if $INCLUDE_DEPENDENTS; then
+  SQUEUE_SNAPSHOT="$(slurm::squeue_lines_with_dependencies "$STATE_FILTER")"
+  SQUEUE_CACHE="$(awk -F'|' 'BEGIN {OFS="|"} NF {print $1,$2,$3,$4,$5,$6,$7,$8}' <<<"$SQUEUE_SNAPSHOT")"
+  DEPENDENCY_CACHE="$(awk -F'|' 'NF {print $1 "|" $9}' <<<"$SQUEUE_SNAPSHOT")"
+else
+  SQUEUE_CACHE="$(slurm::squeue_lines "$STATE_FILTER")"
+fi
 CANDIDATES="$SQUEUE_CACHE"
 
 if $THIS_DIR || [[ -n "$DIR_FILTER" ]]; then
@@ -158,14 +170,7 @@ fi
 
 # Time filter in pure Bash (no awk math needed)
 if [[ -n "$OLDER_THAN" ]]; then
-  filtered=""
-  while IFS='|' read -r jid jname state wdir elapsed start; do
-    [[ -z "$jid" ]] && continue
-    if util::older_than "$elapsed" "$OLDER_THAN"; then
-      filtered+="$jid|$jname|$state|$wdir|$elapsed|$start"$'\n'
-    fi
-  done <<< "$CANDIDATES"
-  CANDIDATES="$filtered"
+  CANDIDATES="$(printf '%s\n' "$CANDIDATES" | util::filter_candidates_older_than "$OLDER_THAN")"
   log_jobs_count "after --older-than '$OLDER_THAN'" "$CANDIDATES"
 fi
 
@@ -180,22 +185,28 @@ if [[ -n "$REASON_FILTER" ]]; then
   log_jobs_count "after reason filter '$REASON_FILTER'" "$CANDIDATES"
 fi
 
-# Build ID list
-TARGET_IDS="$(cut -d'|' -f1 <<<"$CANDIDATES" | sed '/^$/d' | sort -u)"
-if [[ -n "$TARGET_IDS" ]]; then
-  before_count="$(wc -l <<<"$TARGET_IDS" | tr -d ' ')"
-  TARGET_IDS="$(expand_with_dependents "$SQUEUE_CACHE" "$TARGET_IDS")"
-  after_count="$(wc -l <<<"$TARGET_IDS" | tr -d ' ')"
+# Build one canonical final cancellation list, then derive the visible details
+# from that exact list. Nothing is recomputed after confirmation.
+FINAL_IDS="$(cut -d'|' -f1 <<<"$CANDIDATES" | sed '/^$/d' | sort -u)"
+if [[ -n "$FINAL_IDS" ]] && $INCLUDE_DEPENDENTS; then
+  before_count="$(wc -l <<<"$FINAL_IDS" | tr -d ' ')"
+  FINAL_IDS="$(slurm::expand_with_dependents "$DEPENDENCY_CACHE" "$FINAL_IDS")"
+  after_count="$(wc -l <<<"$FINAL_IDS" | tr -d ' ')"
   if (( after_count > before_count )); then
-    echo "Info: also cancelling $((after_count - before_count)) dependent job(s)." >&2
+    echo "Info: included $((after_count - before_count)) dependent job(s) in the cancellation preview." >&2
   fi
 fi
 
 # --- Act
-if [[ -z "$TARGET_IDS" ]]; then
+if [[ -z "$FINAL_IDS" ]]; then
   log_error "No matching jobs."
   exit 0
 fi
+
+mapfile -t FINAL_ID_ARRAY <<<"$FINAL_IDS"
+FINAL_CANDIDATES="$(printf '%s\n' "$SQUEUE_CACHE" \
+  | util::filter_candidates_by_field_values 1 "${FINAL_ID_ARRAY[@]}")"
+FINAL_COUNT="${#FINAL_ID_ARRAY[@]}"
 
 # Bold header (using ANSI codes)
 echo -e "\e[1mJobs to cancel\e[0m"
@@ -207,30 +218,26 @@ BEGIN {
 }
 {
   printf("%-12s %-20s %-10s %-25s %-s\n", $1, $2, $3, $7, $4)
-}' <<<"$CANDIDATES"
+}' <<<"$FINAL_CANDIDATES"
 
 if $DRY; then
   echo
   echo "Dry-run (no changes):"
   while read -r id; do
-    [[ -n "$id" ]] && echo "scancel ${REASON:+--reason \"$REASON\"} $id"
-  done <<< "$TARGET_IDS"
+    [[ -n "$id" ]] && echo "scancel $id"
+  done <<< "$FINAL_IDS"
   exit 0
 fi
 
-if ! $FORCE; then
+if $CONFIRM_ENABLED && ! $FORCE; then
   echo
-  confirm "Cancel $(wc -l <<<"$TARGET_IDS" | tr -d ' ') job(s)?" || { echo "Aborted."; exit 1; }
+  confirm "Cancel $FINAL_COUNT job(s)?" || { echo "Aborted."; exit 1; }
 fi
 
 # Execute
 while read -r id; do
   [[ -z "$id" ]] && continue
-  if [[ -n "$REASON" ]]; then
-    scancel "$id" || log_error "Failed to cancel $id"
-  else
-    scancel "$id" || log_error "Failed to cancel $id"
-  fi
-done <<< "$TARGET_IDS"
+  scancel "$id" || log_error "Failed to cancel $id"
+done <<< "$FINAL_IDS"
 
 log_info "Done."

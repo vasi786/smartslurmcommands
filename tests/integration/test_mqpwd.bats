@@ -126,4 +126,77 @@ EOF
 @test "mqpwd: non-existent directory -> error and non-zero exit" {
   run bash -lc '"$SSC_HOME/cmd/mqpwd/mqpwd.sh" /definitely/does/not/exist'
   [ "$status" -ne 0 ]
+  [[ "$output" =~ Directory\ not\ found:\ /definitely/does/not/exist ]]
+}
+
+@test "mqpwd --state filters directory-related jobs without unbound variables" {
+  run bash -lc '
+    tmp="$(mktemp -d)"
+    printf "%s\n" "#SBATCH --job-name=foo_run" > "$tmp/run.sh"
+    printf "%s\n" "#SBATCH --job-name=foo_pending" > "$tmp/pending.sh"
+
+    "$SSC_HOME/cmd/mqpwd/mqpwd.sh" --dir "$tmp" --state pending
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ foo_pending ]]
+  [[ ! "$output" =~ foo_run ]]
+}
+
+@test "mqpwd --regex intersects with the directory selection" {
+  run bash -lc '
+    tmp="$(mktemp -d)"
+    printf "%s\n" "#SBATCH --job-name=foo_run" > "$tmp/run.sh"
+    printf "%s\n" "#SBATCH --job-name=foo_old" > "$tmp/old.sh"
+    printf "%s\n" "#SBATCH --job-name=foo_pending" > "$tmp/pending.sh"
+
+    "$SSC_HOME/cmd/mqpwd/mqpwd.sh" --dir "$tmp" --regex "^foo_(run|old)$"
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ foo_run ]]
+  [[ "$output" =~ foo_old ]]
+  [[ ! "$output" =~ foo_pending ]]
+}
+
+@test "mqpwd combines directory, regex, and state as an intersection" {
+  run bash -lc '
+    tmp="$(mktemp -d)"
+    printf "%s\n" "#SBATCH --job-name=foo_run" > "$tmp/run.sh"
+    printf "%s\n" "#SBATCH --job-name=foo_old" > "$tmp/old.sh"
+    printf "%s\n" "#SBATCH --job-name=foo_pending" > "$tmp/pending.sh"
+
+    "$SSC_HOME/cmd/mqpwd/mqpwd.sh" --dir "$tmp" --regex "^foo_" --state running --older-than 1h
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ foo_old ]]
+  [[ ! "$output" =~ foo_run ]]
+  [[ ! "$output" =~ foo_pending ]]
+}
+
+@test "mqpwd accepts explicit --this-dir" {
+  run bash -lc '
+    tmp="$(mktemp -d)"
+    cd "$tmp"
+    printf "%s\n" "#SBATCH --job-name=baz_long" > job.sh
+    "$SSC_HOME/cmd/mqpwd/mqpwd.sh" --this-dir
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ baz_long ]]
+}
+
+@test "mqpwd --verbose and --debug enable filter diagnostics" {
+  run bash -lc '
+    tmp="$(mktemp -d)"
+    printf "%s\n" "#SBATCH --job-name=foo_run" > "$tmp/job.sh"
+    "$SSC_HOME/cmd/mqpwd/mqpwd.sh" --dir "$tmp" --verbose
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ INFO: ]]
+
+  run bash -lc '
+    tmp="$(mktemp -d)"
+    printf "%s\n" "#SBATCH --job-name=foo_run" > "$tmp/job.sh"
+    "$SSC_HOME/cmd/mqpwd/mqpwd.sh" --dir "$tmp" --debug
+  '
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ DEBUG: ]]
 }

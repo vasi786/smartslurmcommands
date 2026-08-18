@@ -1,4 +1,23 @@
 # tests/helpers/slurm_mocks/scontrol
 #!/usr/bin/env bash
-# minimal stub; can be extended when you add dep-tree tests
+if [[ -n "${MOCK_SCONTROL_COUNT_FILE:-}" ]]; then
+  printf '1\n' >> "$MOCK_SCONTROL_COUNT_FILE"
+fi
+# Dependency graph enabled explicitly by tests:
+#   1001 -> 1002, 1003; 1002 -> 1582 (recursive chain)
+#   1583 -> 1022
+if [[ "${MOCK_DEPENDENCIES:-false}" != "true" ]]; then
+  exit 0
+fi
+
+jid="${@: -1}"
+dependency="(null)"
+case "$jid" in
+  1002) dependency="afterok:1001" ;;
+  1003) dependency="afterany:1001" ;;
+  1582) dependency="afterok:1002" ;;
+  1022) dependency="afterok:1583" ;;
+esac
+
+printf 'JobId=%s JobName=mock Dependency=%s\n' "$jid" "$dependency"
 exit 0

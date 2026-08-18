@@ -1,0 +1,28 @@
+.TH MQPWD 1
+.SH NAME
+mqpwd \- list Slurm jobs related to a working directory
+.SH SYNOPSIS
+.B mqpwd
+.RI [ PATH ]
+.RI [ FILTERS ]
+.SH DESCRIPTION
+Lists jobs whose WorkDir matches the directory or whose job name is declared by a top-level shell script in that directory.
+The current directory is the default.
+.SH FILTERS
+.BR --this-dir ,
+.BR --dir " " PATH ,
+.BR --name " " NAME ,
+.BR --contains " " TEXT ,
+.BR --regex " " PATTERN ,
+.BR --older-than " " DURATION ,
+.BR --state " " STATE ,
+.BR --partition " " NAME[,NAME...] ,
+and
+.BR --latest .
+.SH DIAGNOSTICS
+.BR --verbose
+shows match counts;
+.BR --debug
+also shows intermediate records.
+.SH SAFETY
+This command is read-only and never cancels jobs.
