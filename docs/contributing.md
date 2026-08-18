@@ -96,9 +96,9 @@ All automated tests use bats. I have divide tests as:
 
   I have simulated Slurm using:
   ```
-  tests/helpers/slurm_mocks/squeue (not implemented yet)
+  tests/helpers/slurm_mocks/squeue
   tests/helpers/slurm_mocks/scancel
-  tests/helpers/slurm_mocks/sbatch (not implemented yet)
+  tests/helpers/slurm_mocks/scontrol
   ```
   `mock_slurm_path` prepends them to PATH.
 

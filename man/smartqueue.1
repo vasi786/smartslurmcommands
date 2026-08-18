@@ -1,0 +1,24 @@
+.TH SMARTQUEUE 1
+.SH NAME
+smartqueue \- filter and display Slurm jobs
+.SH SYNOPSIS
+.B smartqueue
+.RI [ FILTERS ]
+.SH DESCRIPTION
+Filters the current user's queue by directory, exact name, substring, regular expression, elapsed time, state, partition, stdin patterns, or latest matching job.
+Combined filters are intersections.
+.SH FILTERS
+.BR --this-dir ,
+.BR --dir " " PATH ,
+.BR --name " " NAME ,
+.BR --contains " " TEXT ,
+.BR --regex " " PATTERN ,
+.BR --older-than " " DURATION ,
+.BR --state " " STATE ,
+.BR --partition " " NAME[,NAME...] ,
+and
+.BR --latest .
+.PP
+.B --latest
+does not add a state restriction.
+StartTime is used when every candidate has one; otherwise the highest JobID is used.

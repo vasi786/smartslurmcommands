@@ -30,7 +30,7 @@ Combine the flags as needed.
 |------|-------------|
 | `--this-dir` | Fetch jobs related to the current working directory. |
 | `--dir PATH` | Fetch jobs related to the provided `PATH`. |
-| `--latest` | Fetch the latest job in the `squeue`. |
+| `--latest` | Fetch the latest job among all otherwise matching jobs, regardless of state. |
 | `--older-than DUR` | Fetch jobs with elapsed time greater than `DUR` (e.g., `10m`, `2h`). |
 | `--contains SUBSTR` | Fetch job names containing the specified substring of a jobname. |
 | `--regex PATTERN` | Show jobs with job names which matches the provided regex pattern. |
@@ -53,6 +53,10 @@ Combine the flags as needed.
 
   Detailed explanation of all the available flags can be found here: [smartcancel](./docs/subcommands/smartcancel.md).
   If you prefer directly looking at the examples: [smartcancel-examples](./docs/subcommands/smartcancel_examples.md).
+
+  `smartcancel` recursively includes jobs that depend on the selected jobs by default.
+  The complete expanded set is displayed before confirmation, and the confirmation count, dry-run commands, and executed IDs all use that same set.
+  Set `smartcancel.include_dependents=false` in the configuration to cancel only directly selected jobs.
 
   ### Examples
   - If my queue is as below:

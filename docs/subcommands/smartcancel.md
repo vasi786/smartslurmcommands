@@ -43,7 +43,7 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 
 | Flag | Description | Notes |
 |------|-------------|-------|
-| `--latest` | Select only the latest matching job (by StartTime or JobID). | — |
+| `--latest` | Select the latest otherwise matching job, without adding a state filter. | Uses StartTime when every match has one; otherwise uses the highest JobID. |
 
 ## Behavior (optional)
 
@@ -51,6 +51,15 @@ smartcancel [FILTERS] [BEHAVIOR (optional)]
 |------|-------------|-------|
 | `--dry-run` | Show which jobs *would* be cancelled. | No actual cancellation performed. |
 | `--force` | Skip confirmation prompt (`confirm (yes/no)`). | — |
+
+## Dependent jobs and cancellation safety
+
+By default, jobs that recursively depend on the directly selected jobs are included in the cancellation set.
+The details table displays every directly selected and dependent job before confirmation.
+The table, confirmation count, dry-run commands, and actual `scancel` calls all use one identical final set.
+
+Set `smartcancel.include_dependents=false` in the user or project configuration to disable dependent expansion.
+See [configuration](../config.md) for supported settings and precedence.
 
 ## Additional
 

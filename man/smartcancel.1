@@ -1,0 +1,35 @@
+.TH SMARTCANCEL 1
+.SH NAME
+smartcancel \- safely select and cancel Slurm jobs
+.SH SYNOPSIS
+.B smartcancel
+.RI FILTERS
+.RI [ --dry-run ]
+.RI [ --force ]
+.SH DESCRIPTION
+Selects the current user's jobs using intersecting directory, name, regex, age, state, partition, stdin-pattern, and latest-job filters.
+At least one selector is required.
+.PP
+Dependent jobs are recursively included by default.
+Every job in the final expanded set is displayed before confirmation, and that same set is used for dry-run and execution.
+.SH OPTIONS
+.BR --this-dir ,
+.BR --dir " " PATH ,
+.BR --name " " NAME ,
+.BR --contains " " TEXT ,
+.BR --regex " " PATTERN ,
+.BR --older-than " " DURATION ,
+.BR --state " " STATE ,
+.BR --partition " " NAME[,NAME...] ,
+.BR --latest ,
+.BR --dry-run ,
+and
+.BR --force .
+.SH CONFIGURATION
+The keys
+.BR confirm ,
+.BR dry_run ,
+and
+.B smartcancel.include_dependents
+are supported.
+See the project configuration documentation for precedence and accepted boolean values.

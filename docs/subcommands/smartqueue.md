@@ -42,7 +42,7 @@ smartqueue [FILTERS]
 
 | Flag | Description | Notes |
 |------|-------------|-------|
-| `--latest` | Select only the latest matching job (by StartTime or JobID). | — |
+| `--latest` | Select the latest otherwise matching job, without adding a state filter. | Uses StartTime when every match has one; otherwise uses the highest JobID. |
 
 ## Additional
 

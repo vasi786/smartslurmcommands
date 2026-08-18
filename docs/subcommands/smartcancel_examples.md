@@ -17,7 +17,7 @@ Below are example commands for `smartcancel`, each with a short description and 
     15819484      genoa  Q44_c2_2_restart1                     user  R  2-02:54:03 [2-21:05:57]  100G   384 - 2     tcn[558,1179]
     15819331      genoa  Q44_c2_1_restart1                     user  R  2-02:58:06 [2-21:01:54]  100G   384 - 2     tcn[1024-1025]
     ```
-- `smartcancel --latest` - if you want to cancel the latest job on the `squeue`:
+- `smartcancel --latest` - cancel the latest job among all matching states. Pending jobs are considered; combine with `--state running` when only running jobs should be considered:
   <details>
   <summary>example</summary>
 
